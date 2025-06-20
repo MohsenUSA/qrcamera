@@ -113,6 +113,7 @@
       height: auto;
       background: white;
       border-radius: var(--radius);
+      display: none;
     }
 
     #status {
@@ -147,7 +148,7 @@
       <button class="btn btn-danger" id="resetBtn">Reset</button>
     </div>
 
-    <div class="qr-display" id="qrResult" style="display:none;">
+    <div class="qr-display">
       <canvas id="qrCodeCanvas"></canvas>
     </div>
   </div>
@@ -156,7 +157,7 @@
   <div id="tab-camera" class="tab-content">
     <div class="media-container">
       <video id="video" autoplay playsinline></video>
-      <canvas id="canvas" class="hidden"></canvas>
+      <canvas id="cameraCanvas" style="display:none;"></canvas>
     </div>
 
     <div class="btn-group">
@@ -166,6 +167,14 @@
     </div>
 
     <textarea id="cameraText" placeholder="Captured text will appear here..."></textarea>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="generateQRFromCamera">Generate QR Code</button>
+    </div>
+
+    <div class="qr-display">
+      <canvas id="qrCodeCanvas"></canvas>
+    </div>
   </div>
 
   <div id="status">💡 Enter text or use the camera to scan it.</div>
@@ -176,31 +185,14 @@
     const tabs = document.querySelectorAll('.tab');
     const tabContents = document.querySelectorAll('.tab-content');
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-
-        tab.classList.add('active');
-        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-      });
-    });
-
-    const textEditor = document.getElementById('textEditor');
-    const generateQR = document.getElementById('generateQR');
-    const resetBtn = document.getElementById('resetBtn');
-    const qrResult = document.getElementById('qrResult');
     const qrCanvas = document.getElementById('qrCodeCanvas');
     const status = document.getElementById('status');
+    const textEditor = document.getElementById('textEditor');
+    const cameraText = document.getElementById('cameraText');
 
-    generateQR.addEventListener('click', () => {
-      const text = textEditor.value.trim();
-      if (!text) {
-        status.textContent = "❌ Please enter some text.";
-        qrResult.style.display = "none";
-        return;
-      }
+    const ctxQR = qrCanvas.getContext("2d");
 
+    function generateQRCode(text) {
       const tempDiv = document.createElement('div');
       document.body.appendChild(tempDiv);
 
@@ -214,40 +206,79 @@
       });
 
       const img = tempDiv.querySelector('img');
-
       img.onload = () => {
         qrCanvas.width = img.naturalWidth;
         qrCanvas.height = img.naturalHeight;
-        const ctx = qrCanvas.getContext("2d");
-        ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-        ctx.drawImage(img, 0, 0);
-
-        qrResult.style.display = "block";
-        status.textContent = `✅ QR code generated. (${text.length} chars)`;
-
+        ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+        ctxQR.drawImage(img, 0, 0);
+        qrCanvas.style.display = "block";
         document.body.removeChild(tempDiv);
       };
 
       img.onerror = () => {
         status.textContent = "❌ Failed to load QR image.";
+        qrCanvas.style.display = "none";
         document.body.removeChild(tempDiv);
       };
-    });
+    }
 
-    resetBtn.addEventListener('click', () => {
+    document.getElementById('generateQR').onclick = () => {
+      const text = textEditor.value.trim();
+      if (!text) {
+        status.textContent = "❌ Please enter some text.";
+        qrCanvas.style.display = "none";
+        return;
+      }
+      generateQRCode(text);
+      status.textContent = `✅ QR code generated. (${text.length} chars)`;
+    };
+
+    document.getElementById('generateQRFromCamera').onclick = () => {
+      const text = cameraText.value.trim();
+      if (!text) {
+        status.textContent = "❌ No scanned text to generate QR.";
+        qrCanvas.style.display = "none";
+        return;
+      }
+      generateQRCode(text);
+      status.textContent = `✅ QR code generated from camera. (${text.length} chars)`;
+    };
+
+    document.getElementById('resetBtn').onclick = () => {
       textEditor.value = "";
-      qrResult.style.display = "none";
-      status.textContent = "💡 Fields reset.";
+      qrCanvas.style.display = "none";
+      status.textContent = "🧹 Manual tab reset.";
+    };
+
+    document.getElementById('resetCameraBtn').onclick = () => {
+      cameraText.value = "";
+      qrCanvas.style.display = "none";
+      ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      captureBtn.disabled = true;
+      status.textContent = "🧹 Camera tab reset.";
+    };
+
+    // Tab switching
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
     });
 
     // Camera logic
+    const video = document.getElementById('video');
+    const cameraCanvas = document.getElementById('cameraCanvas');
+    const ctx = cameraCanvas.getContext('2d');
     const startCameraBtn = document.getElementById('startCamera');
     const captureBtn = document.getElementById('captureBtn');
-    const resetCameraBtn = document.getElementById('resetCameraBtn');
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const cameraText = document.getElementById('cameraText');
-    const ctx = canvas.getContext('2d');
+
     let stream = null;
 
     startCameraBtn.addEventListener('click', async () => {
@@ -263,49 +294,33 @@
     });
 
     captureBtn.addEventListener('click', async () => {
-      try {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      cameraCanvas.width = video.videoWidth;
+      cameraCanvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
+      const imageData = cameraCanvas.toDataURL('image/png');
 
-        const imageData = canvas.toDataURL('image/png');
-
-        const result = await Tesseract.recognize(imageData, 'eng', {
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              status.textContent = `🔍 OCR ${Math.round(m.progress * 100)}%...`;
-            }
+      const result = await Tesseract.recognize(imageData, 'eng', {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            status.textContent = `🔍 OCR ${Math.round(m.progress * 100)}%...`;
           }
-        });
-
-        const text = result.data.text.trim();
-        if (text) {
-          cameraText.value = text;
-          status.textContent = "✅ Text captured.";
-        } else {
-          cameraText.value = "";
-          status.textContent = "⚠️ No text detected.";
         }
+      });
 
-        // Stop the camera
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-          video.srcObject = null;
-          captureBtn.disabled = true;
-        }
+      const text = result.data.text.trim();
+      cameraText.value = text;
 
-      } catch (err) {
-        console.error(err);
-        status.textContent = "❌ OCR failed.";
+      if (text) {
+        status.textContent = "✅ Text captured.";
+      } else {
+        status.textContent = "⚠️ No text detected.";
       }
-    });
 
-    resetCameraBtn.addEventListener('click', () => {
-      cameraText.value = "";
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      video.srcObject = null;
-      captureBtn.disabled = true;
-      status.textContent = "🧹 Camera tab reset.";
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        captureBtn.disabled = true;
+      }
     });
   </script>
 </body>
