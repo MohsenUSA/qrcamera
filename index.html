@@ -439,6 +439,10 @@
   </div>
 
   <div id="status" style="text-align: center">💡 Enter text or use the camera to scan it 💡</div>
+  <div id="status" style="position: fixed; bottom: 0; left: 0; width: 100%; padding: 1rem; text-align: center" class="text-center text-muted">
+  Made with ❤️ in Seattle by 
+  <a href="https://www.linkedin.com/in/mohajiho" target="_blank" style="text-decoration: none; color: inherit;">Mohsen</a>
+  </div>
 
 
   <!-- Local JS dependencies -->
@@ -817,7 +821,7 @@
       }, 500);
     }
 
-    // Enhanced capture function with immediate camera closure
+    // Enhanced capture function with camera closure AFTER OCR
     async function enhancedCapture() {
       const video = document.getElementById('video');
       const cameraCanvas = document.getElementById('cameraCanvas');
@@ -825,26 +829,14 @@
       const ocrOverlay = document.getElementById('ocrOverlay');
       const ocrProgress = document.getElementById('ocrProgress');
       
-      // Stop camera immediately and show OCR overlay
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        currentStream = null; // Clear reference
-        videoTrack = null; // Clear reference
-        document.getElementById('captureBtn').disabled = true;
-        document.getElementById('autoFocusBtn').disabled = true;
-        document.getElementById('cameraControls').style.display = 'none';
-        document.getElementById('focusIndicator').style.display = 'none';
-      }
-      
-      // Show OCR overlay
+      // Show OCR overlay (but keep camera running)
       ocrOverlay.classList.add('show');
       ocrProgress.textContent = "Capturing frames...";
       
       frames = [];
       const frameCount = 8;
       
-      // Capture multiple frames
+      // Capture multiple frames while camera is still running
       for (let i = 0; i < frameCount; i++) {
         cameraCanvas.width = video.videoWidth;
         cameraCanvas.height = video.videoHeight;
@@ -900,6 +892,18 @@
         const text = result.data.text.trim();
         document.getElementById('cameraText').value = text;
         
+        // NOW close camera and cleanup after successful OCR
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+          video.srcObject = null;
+          currentStream = null;
+          videoTrack = null;
+          document.getElementById('captureBtn').disabled = true;
+          document.getElementById('autoFocusBtn').disabled = true;
+          document.getElementById('cameraControls').style.display = 'none';
+          document.getElementById('focusIndicator').style.display = 'none';
+        }
+        
         // EXPLICIT CLEANUP after OCR
         processedImage = null;
         frames = null;
@@ -913,12 +917,24 @@
         ocrOverlay.classList.remove('show');
         
         if (text) {
-          status.textContent = `✅ Text captured successfully! (${text.length} chars) - Image data cleared.`;
+          status.textContent = `✅ Text captured successfully! (${text.length} chars) - Camera closed, image data cleared.`;
         } else {
-          status.textContent = "⚠️ No text detected. Image data cleared from memory.";
+          status.textContent = "⚠️ No text detected. Camera closed, image data cleared from memory.";
         }
         
       } catch (err) {
+        // Close camera and cleanup even on error
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+          video.srcObject = null;
+          currentStream = null;
+          videoTrack = null;
+          document.getElementById('captureBtn').disabled = true;
+          document.getElementById('autoFocusBtn').disabled = true;
+          document.getElementById('cameraControls').style.display = 'none';
+          document.getElementById('focusIndicator').style.display = 'none';
+        }
+        
         // Cleanup even on error
         processedImage = null;
         frames = null;
@@ -928,7 +944,7 @@
         
         console.error('OCR Error:', err);
         ocrOverlay.classList.remove('show');
-        status.textContent = "❌ OCR failed. Image data cleared from memory.";
+        status.textContent = "❌ OCR failed. Camera closed, image data cleared from memory.";
       }
     }
 
@@ -1073,10 +1089,4 @@
     });
   </script>
 </body>
-    <footer>
-      <div id="status" style="text-align: center" class="text-center text-muted">
-      Made with ❤️ in Seattle by 
-      <a href="https://www.linkedin.com/in/mohajiho" target="_blank" style="text-decoration: none; color: inherit;">Mohsen</a>
-      </div>
-  </footer>
 </html>
