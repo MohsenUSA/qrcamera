@@ -154,7 +154,7 @@
         <button class="btn btn-danger" onclick="resetAll('manualInput')">Reset</button>
       </div>
       <div class="qr-display">
-        <canvas id="qrCodeCanvas"></canvas>
+        <canvas id="qrCodeCanvas" width="300" height="300"></canvas>
       </div>
     </div>
   </div>
@@ -173,7 +173,7 @@
         <button class="btn btn-primary" onclick="generateFromText('cameraInput')">Generate QR</button>
       </div>
       <div class="qr-display">
-        <canvas id="qrCodeCanvas"></canvas>
+        <canvas id="qrCodeCanvas" width="300" height="300"></canvas>
       </div>
     </div>
   </div>
@@ -208,7 +208,15 @@
     function generateFromText(inputId) {
       const text = document.getElementById(inputId).value.trim();
       if (!text) return alert("Please enter text first.");
-      QRCode.toCanvas(canvas, text, { width: 300 }, function (error) {
+      QRCode.toCanvas(canvas, text, {
+        errorCorrectionLevel: 'H',
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        }
+      }, function (error) {
         if (error) {
           console.error(error);
           alert("Failed to generate QR.");
@@ -225,7 +233,6 @@
 
     function clearCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      canvas.width = canvas.width; // reset canvas size
       canvas.style.display = 'none';
     }
 
