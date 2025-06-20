@@ -665,11 +665,9 @@
             try {
                 this.updateStatus('🎨 Generating QR code...', 'default', true);
         
-                // Temporary container to use UMD QRCode (which generates an <img>)
                 const tempDiv = document.createElement('div');
-                document.body.appendChild(tempDiv); // Must be in DOM
+                document.body.appendChild(tempDiv);
         
-                // Use UMD-style QRCode generation
                 new QRCode(tempDiv, {
                     text: textToEncode,
                     width: 300,
@@ -679,11 +677,15 @@
                     correctLevel: QRCode.CorrectLevel.H
                 });
         
-                // Wait for image to render
-                await new Promise(resolve => setTimeout(resolve, 200));
-        
-                const img = tempDiv.querySelector('img');
-                if (!img) throw new Error('QR image not generated.');
+                // Wait for <img> to render and fully load
+                const img = await new Promise((resolve, reject) => {
+                    const checkImg = () => {
+                        const qrImg = tempDiv.querySelector('img');
+                        if (qrImg && qrImg.complete) return resolve(qrImg);
+                        setTimeout(checkImg, 50);
+                    };
+                    checkImg();
+                });
         
                 const canvas = this.qrCanvas;
                 const ctx = canvas.getContext('2d');
@@ -693,7 +695,7 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
         
-                document.body.removeChild(tempDiv); // Clean up
+                document.body.removeChild(tempDiv);
         
                 this.qrResult.classList.remove('hidden');
                 this.updateStatus(`✅ QR code generated successfully! (${textToEncode.length} characters)`, 'success');
