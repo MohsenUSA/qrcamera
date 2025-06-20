@@ -457,6 +457,10 @@
     let videoTrack = null;
     let capabilities = null;
     let settings = null;
+    
+    // Memory tracking variables
+    let processedImage = null;
+    let frames = null;
 
     // Tab switching
     tabs.forEach(tab => {
@@ -591,13 +595,20 @@
       }, 100);
     }
 
-    // Clear canvas function
+    // Clear canvas function with memory cleanup
     function resetCanvas(canvasId, actionsId) {
       const canvas = document.getElementById(canvasId);
       const actions = document.getElementById(actionsId);
       const ctx = canvas.getContext("2d");
       
+      // Clear canvas completely
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Reset canvas dimensions to free memory
+      canvas.width = 0;
+      canvas.height = 0;
+      
+      // Hide canvas and actions
       canvas.style.display = "none";
       actions.classList.remove('show');
     }
@@ -658,15 +669,10 @@
             width: { ideal: 1920, min: 1280 },
             height: { ideal: 1080, min: 720 },
             aspectRatio: { ideal: 16/9 },
-            // Advanced focus controls
-            focusMode: { ideal: 'manual' },
-            focusDistance: { ideal: 0.5 },
             // Enhanced quality settings
-            exposureMode: { ideal: 'manual' },
-            exposureCompensation: { ideal: 0 },
-            whiteBalanceMode: { ideal: 'manual' },
-            // Zoom capabilities
-            zoom: { ideal: 1.0 }
+            focusMode: { ideal: 'continuous' },
+            exposureMode: { ideal: 'continuous' },
+            whiteBalanceMode: { ideal: 'continuous' }
           }
         };
 
@@ -700,7 +706,7 @@
         // Start focus monitoring
         startFocusMonitoring();
         
-        status.textContent = "📷 Camera started with enhanced focus controls.";
+        status.textContent = "📷 Camera started.";
         
       } catch (err) {
         console.error('Camera initialization error:', err);
@@ -767,11 +773,6 @@
         // Wait a moment for autofocus to work
         setTimeout(async () => {
           try {
-            // Get optimal focus distance from autofocus
-            const currentSettings = videoTrack.getSettings();
-            if (currentSettings.focusDistance) {
-              document.getElementById('focusSlider').value = currentSettings.focusDistance;
-            }
             status.textContent = "✅ Auto focus complete.";
           } catch (err) {
             status.textContent = "📷 Auto focus attempted.";
@@ -816,7 +817,7 @@
       }, 500);
     }
 
-    // Enhanced capture function
+    // Enhanced capture function with immediate camera closure
     async function enhancedCapture() {
       const video = document.getElementById('video');
       const cameraCanvas = document.getElementById('cameraCanvas');
@@ -824,12 +825,24 @@
       const ocrOverlay = document.getElementById('ocrOverlay');
       const ocrProgress = document.getElementById('ocrProgress');
       
-      // Hide video and show OCR overlay
+      // Stop camera immediately and show OCR overlay
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        currentStream = null; // Clear reference
+        videoTrack = null; // Clear reference
+        document.getElementById('captureBtn').disabled = true;
+        document.getElementById('autoFocusBtn').disabled = true;
+        document.getElementById('cameraControls').style.display = 'none';
+        document.getElementById('focusIndicator').style.display = 'none';
+      }
+      
+      // Show OCR overlay
       ocrOverlay.classList.add('show');
       ocrProgress.textContent = "Capturing frames...";
       
-      const frames = [];
-      const frameCount = 8; // Increased frame count
+      frames = [];
+      const frameCount = 8;
       
       // Capture multiple frames
       for (let i = 0; i < frameCount; i++) {
@@ -861,7 +874,7 @@
       // Enhanced preprocessing
       enhanceImageForOCR(cameraCanvas);
       
-      const processedImage = cameraCanvas.toDataURL('image/png');
+      processedImage = cameraCanvas.toDataURL('image/png');
       
       ocrProgress.textContent = "Starting OCR analysis...";
       
@@ -887,29 +900,35 @@
         const text = result.data.text.trim();
         document.getElementById('cameraText').value = text;
         
+        // EXPLICIT CLEANUP after OCR
+        processedImage = null;
+        frames = null;
+        
+        // Clear canvas after OCR
+        ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+        cameraCanvas.width = 0;
+        cameraCanvas.height = 0;
+        
         // Hide OCR overlay
         ocrOverlay.classList.remove('show');
         
         if (text) {
-          status.textContent = `✅ Text captured successfully! (${text.length} chars)`;
+          status.textContent = `✅ Text captured successfully! (${text.length} chars) - Image data cleared.`;
         } else {
-          status.textContent = "⚠️ No text detected. Try adjusting zoom, exposure, or lighting.";
+          status.textContent = "⚠️ No text detected. Image data cleared from memory.";
         }
         
       } catch (err) {
+        // Cleanup even on error
+        processedImage = null;
+        frames = null;
+        ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+        cameraCanvas.width = 0;
+        cameraCanvas.height = 0;
+        
         console.error('OCR Error:', err);
         ocrOverlay.classList.remove('show');
-        status.textContent = "❌ OCR processing failed. Please try again.";
-      }
-      
-      // Stop camera after capture
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        document.getElementById('captureBtn').disabled = true;
-        document.getElementById('autoFocusBtn').disabled = true;
-        document.getElementById('cameraControls').style.display = 'none';
-        document.getElementById('focusIndicator').style.display = 'none';
+        status.textContent = "❌ OCR failed. Image data cleared from memory.";
       }
     }
 
@@ -969,30 +988,95 @@
       downloadQRCode(document.getElementById('qrCodeCanvasCamera'));
     };
 
+    // Enhanced Reset with Complete Memory Cleanup
     document.getElementById('resetCameraBtn').onclick = () => {
+      // Clear text areas
       cameraText.value = "";
+      
+      // Clear QR canvas with memory cleanup
       resetCanvas('qrCodeCanvasCamera', 'qrActionsCamera');
+      
+      // Stop and cleanup camera stream
       if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
         document.getElementById('video').srcObject = null;
+        currentStream = null; // Clear reference
+        videoTrack = null; // Clear reference
       }
+      
+      // Explicit memory cleanup for camera canvas
+      const cameraCanvas = document.getElementById('cameraCanvas');
+      const ctx = cameraCanvas.getContext('2d');
+      
+      // Clear canvas completely
+      ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+      
+      // Reset canvas dimensions to free memory
+      cameraCanvas.width = 0;
+      cameraCanvas.height = 0;
+      
+      // Clear any cached image data variables
+      processedImage = null;
+      frames = null;
+      
+      // Force garbage collection hint (browsers may ignore this)
+      if (window.gc) {
+        window.gc();
+      }
+      
+      // Reset UI state
       document.getElementById('captureBtn').disabled = true;
       document.getElementById('autoFocusBtn').disabled = true;
       document.getElementById('cameraControls').style.display = 'none';
       document.getElementById('focusIndicator').style.display = 'none';
-      status.textContent = "🧹 Camera tab reset.";
+      document.getElementById('ocrOverlay').classList.remove('show');
+      
+      status.textContent = "🧹 Camera reset - all image data cleared from memory.";
     };
 
     // Enhanced camera controls
     document.getElementById('startCamera').addEventListener('click', initializeCamera);
     document.getElementById('autoFocusBtn').addEventListener('click', performAutoFocus);
     document.getElementById('captureBtn').addEventListener('click', enhancedCapture);
+
+    // Additional cleanup when page is closed/refreshed
+    window.addEventListener('beforeunload', function() {
+      // Stop all camera streams
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+      
+      // Clear canvases
+      const cameraCanvas = document.getElementById('cameraCanvas');
+      if (cameraCanvas) {
+        const ctx = cameraCanvas.getContext('2d');
+        ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+        cameraCanvas.width = 0;
+        cameraCanvas.height = 0;
+      }
+      
+      // Clear variables
+      processedImage = null;
+      frames = null;
+    });
+
+    // Optional: Clear canvas when switching tabs
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        // Page is hidden (user switched tabs)
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        if (cameraCanvas) {
+          const ctx = cameraCanvas.getContext('2d');
+          ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+        }
+      }
+    });
   </script>
-  <footer>
+</body>
+    <footer>
       <div id="status" style="text-align: center" class="text-center text-muted">
       Made with ❤️ in Seattle by 
       <a href="https://www.linkedin.com/in/mohajiho" target="_blank" style="text-decoration: none; color: inherit;">Mohsen</a>
       </div>
   </footer>
-</body>
 </html>
