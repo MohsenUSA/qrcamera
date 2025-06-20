@@ -585,12 +585,17 @@ textEditor.addEventListener('input', function() {
 
       status.textContent = "🔍 Scanning text...";
 
+      // Tesseract configuration
       const result = await Tesseract.recognize(imageData, 'eng', {
         logger: m => {
           if (m.status === 'recognizing text') {
             status.textContent = `🔍 OCR ${Math.round(m.progress * 100)}%...`;
           }
-        }
+        },
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+        tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.!? ',
+        preserve_interword_spaces: '1',
+        user_defined_dpi: '300'
       });
 
       const text = result.data.text.trim();
