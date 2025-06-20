@@ -388,7 +388,7 @@
         <div class="card">
             <div class="card-header">
                 <h1 class="card-title">📱 Text Scanner to QR Code</h1>
-                <p class="card-description">Scan text with your camera and generate QR codes instantly</p>
+                <p class="card-description">Type text directly below or scan with your camera - both ways work!</p>
             </div>
         </div>
         
@@ -410,23 +410,19 @@
 
         <!-- Status Alert -->
         <div id="status" class="alert alert-default">
-            Click "Start Camera" to begin scanning text
+            💡 You can type text directly above and generate QR codes, or use the camera to scan text automatically
         </div>
 
-        <!-- Text Results Card -->
-        <div id="textResult" class="card hidden">
+        <!-- Text Input Card -->
+        <div class="card">
             <div class="card-content space-y-4">
                 <div>
-                    <h3 class="font-semibold text-lg mb-2">🔍 Detected Text</h3>
-                    <div id="detectedText" class="text-display"></div>
-                </div>
-                
-                <div>
-                    <h3 class="font-semibold text-lg mb-2">✏️ Edit & Select Text</h3>
+                    <h3 class="font-semibold text-lg mb-2">✏️ Enter Text for QR Code</h3>
+                    <p class="text-sm text-muted-foreground mb-4">Type your text directly or scan with camera to auto-fill</p>
                     <textarea 
                         id="textEditor" 
                         class="input textarea" 
-                        placeholder="Edit the detected text here or type your own text..."
+                        placeholder="Type your text here... URLs, phone numbers, messages, or any text you want to convert to QR code"
                     ></textarea>
                 </div>
                 
@@ -443,6 +439,17 @@
                 <button id="generateQR" class="btn btn-primary" style="width: 100%;">
                     📱 Generate QR Code
                 </button>
+            </div>
+        </div>
+
+        <!-- Scanned Text Results Card -->
+        <div id="textResult" class="card hidden">
+            <div class="card-content space-y-4">
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">🔍 Scanned Text</h3>
+                    <p class="text-sm text-muted-foreground mb-2">Text detected from camera - automatically added to text editor above</p>
+                    <div id="detectedText" class="text-display"></div>
+                </div>
             </div>
         </div>
 
@@ -529,7 +536,7 @@
                     this.captureBtn.disabled = false;
                     this.stopCameraBtn.disabled = false;
                     
-                    this.updateStatus('📷 Camera ready! Position text in view and click "Capture & Scan"', 'success');
+                    this.updateStatus('📷 Camera ready! Position text in view and click "Capture & Scan", or continue typing in the text editor above', 'success');
 
                 } catch (error) {
                     console.error('Error accessing camera:', error);
@@ -548,7 +555,7 @@
                 this.captureBtn.disabled = true;
                 this.stopCameraBtn.disabled = true;
                 
-                this.updateStatus('Camera stopped. Click "Start Camera" to begin again.', 'default');
+                this.updateStatus('Camera stopped. You can still type text directly above to generate QR codes!', 'default');
             }
 
             async captureAndScan() {
@@ -588,9 +595,23 @@
             }
 
             displayDetectedText(text) {
+                // Show the scanned text in the results card
                 this.detectedTextDiv.textContent = text;
-                this.textEditor.value = text;
                 this.textResult.classList.remove('hidden');
+                
+                // Add scanned text to the text editor (append if there's existing text)
+                const currentText = this.textEditor.value.trim();
+                if (currentText) {
+                    this.textEditor.value = currentText + '\n\n' + text;
+                } else {
+                    this.textEditor.value = text;
+                }
+                
+                // Focus the text editor and place cursor at the end
+                this.textEditor.focus();
+                this.textEditor.setSelectionRange(this.textEditor.value.length, this.textEditor.value.length);
+                
+                // Hide previous QR code since text has changed
                 this.qrResult.classList.add('hidden');
                 this.selectionInfo.classList.add('hidden');
             }
@@ -639,7 +660,8 @@
                 const textToEncode = this.textEditor.value.trim();
                 
                 if (!textToEncode) {
-                    this.updateStatus('❌ No text to convert to QR code. Please enter some text.', 'destructive');
+                    this.updateStatus('❌ Please enter some text in the text box above to generate a QR code.', 'destructive');
+                    this.textEditor.focus();
                     return;
                 }
 
@@ -680,7 +702,10 @@
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
-            new TextScannerApp();
+            const app = new TextScannerApp();
+            
+            // Focus the text editor on load to encourage direct typing
+            document.getElementById('textEditor').focus();
         });
 
         // Check for browser support
