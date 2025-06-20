@@ -641,41 +641,42 @@
         }
       }
 
-      async generateQRCode() {
-        const textToEncode = this.textEditor.value.trim();
-        if (!textToEncode) {
-          this.updateStatus('❌ Please enter some text in the text box above to generate a QR code.', 'destructive');
-          this.textEditor.focus();
-          return;
-        }
-
-        try {
-          this.updateStatus('🎨 Generating QR code...', 'default', true);
-
-          // ✅ FIXED: Properly clear the canvas
-          const ctx = this.qrCanvas.getContext('2d');
-          ctx.clearRect(0, 0, this.qrCanvas.width, this.qrCanvas.height);
-
-          // ✅ Make sure canvas is big enough
-          this.qrCanvas.width = 300;
-          this.qrCanvas.height = 300;
-
-          await QRCode.toCanvas(this.qrCanvas, textToEncode, {
-            width: 300,
-            margin: 2,
-            color: {
-              dark: '#000000',
-              light: '#FFFFFF'
+        async generateQRCode() {
+            const textToEncode = this.textEditor.value.trim();
+            
+            if (!textToEncode) {
+                this.updateStatus('❌ Please enter some text in the text box above to generate a QR code.', 'destructive');
+                this.textEditor.focus();
+                return;
             }
-          });
-
-          this.qrResult.classList.remove('hidden');
-          this.updateStatus(`✅ QR code generated successfully! (${textToEncode.length} characters)`, 'success');
-        } catch (error) {
-          console.error('Error generating QR code:', error);
-          this.updateStatus('❌ Error generating QR code. Text might be too long or invalid.', 'destructive');
+        
+            try {
+                this.updateStatus('🎨 Generating QR code...', 'default', true);
+        
+                // ✅ Explicitly set canvas size before drawing
+                this.qrCanvas.width = 300;
+                this.qrCanvas.height = 300;
+        
+                const ctx = this.qrCanvas.getContext('2d');
+                ctx.clearRect(0, 0, this.qrCanvas.width, this.qrCanvas.height);
+        
+                await QRCode.toCanvas(this.qrCanvas, textToEncode, {
+                    width: 300,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                });
+        
+                this.qrResult.classList.remove('hidden');
+                this.updateStatus(`✅ QR code generated successfully! (${textToEncode.length} characters)`, 'success');
+        
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+                this.updateStatus('❌ Error generating QR code. Text might be too long or invalid.', 'destructive');
+            }
         }
-      }
 
       updateStatus(message, type = 'default', isLoading = false) {
         this.status.textContent = message;
