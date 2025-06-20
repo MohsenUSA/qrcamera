@@ -827,17 +827,7 @@
       const ocrOverlay = document.getElementById('ocrOverlay');
       const ocrProgress = document.getElementById('ocrProgress');
       
-      // Stop camera immediately and show OCR overlay
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        document.getElementById('captureBtn').disabled = true;
-        document.getElementById('autoFocusBtn').disabled = true;
-        document.getElementById('cameraControls').style.display = 'none';
-        document.getElementById('focusIndicator').style.display = 'none';
-      }
-      
-      // Show OCR overlay
+      // Hide video and show OCR overlay
       ocrOverlay.classList.add('show');
       ocrProgress.textContent = "Capturing frames...";
       
@@ -906,13 +896,23 @@
         if (text) {
           status.textContent = `✅ Text captured successfully! (${text.length} chars)`;
         } else {
-          status.textContent = "⚠️ No text detected. Try restarting camera with better lighting.";
+          status.textContent = "⚠️ No text detected. Try adjusting zoom, exposure, or lighting.";
         }
         
       } catch (err) {
         console.error('OCR Error:', err);
         ocrOverlay.classList.remove('show');
         status.textContent = "❌ OCR processing failed. Please try again.";
+      }
+      
+      // Stop camera after capture
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        document.getElementById('captureBtn').disabled = true;
+        document.getElementById('autoFocusBtn').disabled = true;
+        document.getElementById('cameraControls').style.display = 'none';
+        document.getElementById('focusIndicator').style.display = 'none';
       }
     }
 
