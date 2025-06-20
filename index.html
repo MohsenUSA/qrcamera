@@ -3,53 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR Code Generator with OCR</title>
+  <title>QR Code Generator</title>
   <style>
-    :root {
-      --radius: 0.5rem;
-      --muted: #f2f2f2;
-      --primary: #007bff;
-      --destructive: #dc3545;
-      --border: #ccc;
-    }
-
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 1rem;
-      background: #fff;
-    }
-
-    h1 {
-      text-align: center;
+      background: #f9f9f9;
+      color: #333;
     }
 
     .tabs {
       display: flex;
       justify-content: center;
-      border-bottom: 1px solid var(--border);
+      gap: 1rem;
       margin-bottom: 1rem;
     }
 
-    .tab {
+    .tabs button {
       padding: 0.5rem 1rem;
       cursor: pointer;
-      border: 1px solid var(--border);
-      border-bottom: none;
-      border-radius: var(--radius) var(--radius) 0 0;
-      background: #f9f9f9;
-      margin: 0 0.25rem;
+      border: none;
+      background: #eee;
+      border-radius: 5px;
+      font-weight: bold;
     }
 
-    .tab.active {
-      background: #fff;
-      font-weight: bold;
+    .tabs button.active {
+      background: #007bff;
+      color: white;
     }
 
     .tab-content {
       display: none;
-      max-width: 600px;
-      margin: 0 auto;
     }
 
     .tab-content.active {
@@ -58,294 +44,187 @@
 
     textarea {
       width: 100%;
-      box-sizing: border-box;
-      min-height: 120px;
       padding: 0.5rem;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      margin-bottom: 1rem;
     }
 
     .btn-group {
       display: flex;
       justify-content: center;
-      gap: 0.5rem;
-      margin: 1rem 0;
+      gap: 1rem;
       flex-wrap: wrap;
+      margin-bottom: 1rem;
     }
 
     .btn {
       padding: 0.5rem 1rem;
-      border-radius: var(--radius);
       border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
       cursor: pointer;
-      font-weight: 500;
     }
 
-    .btn-primary {
-      background: var(--primary);
-      color: white;
+    .btn.reset {
+      background: #dc3545;
     }
 
-    .btn-danger {
-      background: var(--destructive);
-      color: white;
-    }
-
-    .media-container {
-      max-width: 100%;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 1rem;
-    }
-
-    video, canvas {
-      width: 100%;
-      display: block;
-    }
-
-    .qr-display {
-      margin-top: 1rem;
+    .canvas-wrapper {
       display: flex;
       justify-content: center;
-      padding: 1rem;
+      padding: 2rem;
     }
 
     #qrCodeCanvas {
       display: none;
-      width: 100%;
-      max-width: 300px;
-      padding: 2rem;
-      height: auto;
       background: white;
-      border-radius: var(--radius);
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 90vw;
+      height: auto;
       box-sizing: border-box;
     }
 
-
-    #status {
-      margin-top: 1rem;
-      padding: 0.5rem;
-      background: var(--muted);
-      border-radius: var(--radius);
-      text-align: center;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+    video {
+      width: 100%;
+      max-width: 480px;
+      display: block;
+      margin: 0 auto;
+      border-radius: 10px;
+      border: 1px solid #ccc;
     }
 
     @media (max-width: 480px) {
-      #qrCodeCanvas {
-        max-width: 90vw;
+      textarea {
+        font-size: 1rem;
       }
     }
   </style>
 </head>
 <body>
-  <h1>📱 Text Scanner to QR Code</h1>
 
   <div class="tabs">
-    <div class="tab active" data-tab="manual">Manual Input</div>
-    <div class="tab" data-tab="camera">Camera Scan</div>
+    <button id="manualTab" class="active">Manual Input</button>
+    <button id="cameraTab">Camera Scan</button>
   </div>
 
-  <!-- Manual Input Tab -->
-  <div id="tab-manual" class="tab-content active">
-    <textarea id="textEditor" placeholder="Enter text here..."></textarea>
-
+  <div id="manualContent" class="tab-content active">
+    <textarea id="manualInput" placeholder="Type your text here..."></textarea>
     <div class="btn-group">
-      <button class="btn btn-primary" id="generateQR">Generate QR Code</button>
-      <button class="btn btn-danger" id="resetBtn">Reset</button>
+      <button class="btn" onclick="generateFromText('manualInput')">Generate QR</button>
+      <button class="btn reset" onclick="resetAll('manualInput')">Reset</button>
     </div>
-
-    <div class="qr-display">
+    <div class="canvas-wrapper">
       <canvas id="qrCodeCanvas"></canvas>
     </div>
   </div>
 
-  <!-- Camera Tab -->
-  <div id="tab-camera" class="tab-content">
-    <div class="media-container">
-      <video id="video" autoplay playsinline></video>
-      <canvas id="cameraCanvas" style="display:none;"></canvas>
-    </div>
-
+  <div id="cameraContent" class="tab-content">
+    <video id="video" autoplay playsinline></video>
     <div class="btn-group">
-      <button class="btn btn-primary" id="startCamera">Start Camera</button>
-      <button class="btn btn-primary" id="captureBtn" disabled>Capture & Scan</button>
-      <button class="btn btn-danger" id="resetCameraBtn">Reset</button>
+      <button class="btn" onclick="startCamera()">Start Camera</button>
+      <button class="btn" onclick="captureAndScan()">Capture & Scan</button>
+      <button class="btn reset" onclick="resetAll('cameraInput')">Reset</button>
     </div>
-
-    <textarea id="cameraText" placeholder="Captured text will appear here..."></textarea>
-
+    <textarea id="cameraInput" placeholder="Scanned text will appear here..."></textarea>
     <div class="btn-group">
-      <button class="btn btn-primary" id="generateQRFromCamera">Generate QR Code</button>
+      <button class="btn" onclick="generateFromText('cameraInput')">Generate QR</button>
     </div>
-
-    <div class="qr-display">
+    <div class="canvas-wrapper">
       <canvas id="qrCodeCanvas"></canvas>
     </div>
   </div>
 
-  <div id="status">💡 Enter text or use the camera to scan it.</div>
-
-  <!-- Local JS dependencies -->
   <script src="https://mohsenusa.github.io/qrcamera/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
   <script>
-    const tabs = document.querySelectorAll('.tab');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const qrCanvas = document.getElementById('qrCodeCanvas');
-    const status = document.getElementById('status');
-    const textEditor = document.getElementById('textEditor');
-    const cameraText = document.getElementById('cameraText');
-    const ctxQR = qrCanvas.getContext("2d");
-
-    // Tab switching
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-      });
-    });
-
-    function generateQRCode(text) {
-      const tempDiv = document.createElement('div');
-      document.body.appendChild(tempDiv);
-
-      new QRCode(tempDiv, {
-        text,
-        width: 256,
-        height: 256,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
-
-      const img = tempDiv.querySelector('img');
-      img.onload = () => {
-        qrCanvas.width = img.naturalWidth;
-        qrCanvas.height = img.naturalHeight;
-        ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-        ctxQR.drawImage(img, 0, 0);
-        qrCanvas.style.display = "block";
-        document.body.removeChild(tempDiv);
-      };
-
-      img.onerror = () => {
-        status.textContent = "❌ Failed to load QR image.";
-        qrCanvas.style.display = "none";
-        document.body.removeChild(tempDiv);
-      };
-    }
-
-    document.getElementById('generateQR').onclick = () => {
-      const text = textEditor.value.trim();
-      if (!text) {
-        status.textContent = "❌ Please enter some text.";
-        qrCanvas.style.display = "none";
-        return;
-      }
-      generateQRCode(text);
-      status.textContent = `✅ QR code generated. (${text.length} chars)`;
-    };
-
-    document.getElementById('generateQRFromCamera').onclick = () => {
-      const text = cameraText.value.trim();
-      if (!text) {
-        status.textContent = "❌ No scanned text to generate QR.";
-        qrCanvas.style.display = "none";
-        return;
-      }
-      generateQRCode(text);
-      status.textContent = `✅ QR code generated from camera. (${text.length} chars)`;
-    };
-
-    function resetCanvas() {
-      const canvas = document.getElementById("qrCodeCanvas");
-      const ctx = canvas.getContext("2d");
-    
-      // Fully clear canvas drawing
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-      // Optionally reset dimensions to force redraw
-      canvas.width = canvas.width;
-    
-      // Hide canvas visually
-      canvas.style.display = "none";
-    }
-
-
-
-    document.getElementById('resetBtn').onclick = () => {
-      textEditor.value = "";
-      resetCanvas();
-      status.textContent = "🧹 Manual tab reset.";
-    };
-
-    document.getElementById('resetCameraBtn').onclick = () => {
-      cameraText.value = "";
-      resetCanvas();
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-      }
-      captureBtn.disabled = true;
-      status.textContent = "🧹 Camera tab reset.";
-    };
-
-    // Camera logic
+    const manualTab = document.getElementById('manualTab');
+    const cameraTab = document.getElementById('cameraTab');
+    const manualContent = document.getElementById('manualContent');
+    const cameraContent = document.getElementById('cameraContent');
     const video = document.getElementById('video');
-    const cameraCanvas = document.getElementById('cameraCanvas');
-    const ctx = cameraCanvas.getContext('2d');
-    const startCameraBtn = document.getElementById('startCamera');
-    const captureBtn = document.getElementById('captureBtn');
-
+    const canvas = document.getElementById('qrCodeCanvas');
+    const ctx = canvas.getContext('2d');
     let stream = null;
 
-    startCameraBtn.addEventListener('click', async () => {
+    // Tab switching
+    manualTab.onclick = () => {
+      manualTab.classList.add('active');
+      cameraTab.classList.remove('active');
+      manualContent.classList.add('active');
+      cameraContent.classList.remove('active');
+      stopCamera();
+    };
+
+    cameraTab.onclick = () => {
+      cameraTab.classList.add('active');
+      manualTab.classList.remove('active');
+      cameraContent.classList.add('active');
+      manualContent.classList.remove('active');
+    };
+
+    function generateFromText(inputId) {
+      const text = document.getElementById(inputId).value.trim();
+      if (!text) return alert("Please enter text first.");
+      QRCode.toCanvas(canvas, text, { width: 300 }, function (error) {
+        if (error) {
+          console.error(error);
+          alert("Failed to generate QR.");
+        } else {
+          canvas.style.display = 'block';
+        }
+      });
+    }
+
+    function resetAll(inputId) {
+      document.getElementById(inputId).value = '';
+      clearCanvas();
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = canvas.width; // force redraw
+      canvas.style.display = 'none';
+    }
+
+    async function startCamera() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         video.srcObject = stream;
-        captureBtn.disabled = false;
-        status.textContent = "📷 Camera started.";
       } catch (err) {
-        console.error(err);
-        status.textContent = "❌ Failed to access camera.";
+        alert('Camera access denied or not supported');
       }
-    });
+    }
 
-    captureBtn.addEventListener('click', async () => {
-      cameraCanvas.width = video.videoWidth;
-      cameraCanvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
-      const imageData = cameraCanvas.toDataURL('image/png');
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+    }
 
-      const result = await Tesseract.recognize(imageData, 'eng', {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            status.textContent = `🔍 OCR ${Math.round(m.progress * 100)}%...`;
-          }
-        }
+    async function captureAndScan() {
+      if (!stream) return alert("Camera not started.");
+      const hiddenCanvas = document.createElement("canvas");
+      hiddenCanvas.width = video.videoWidth;
+      hiddenCanvas.height = video.videoHeight;
+      const hiddenCtx = hiddenCanvas.getContext("2d");
+      hiddenCtx.drawImage(video, 0, 0);
+      const dataUrl = hiddenCanvas.toDataURL("image/png");
+
+      stopCamera();
+
+      const result = await Tesseract.recognize(dataUrl, 'eng', {
+        logger: m => console.log(m)
       });
 
       const text = result.data.text.trim();
-      cameraText.value = text;
-
-      if (text) {
-        status.textContent = "✅ Text captured.";
-      } else {
-        status.textContent = "⚠️ No text detected.";
-      }
-
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        captureBtn.disabled = true;
-      }
-    });
+      document.getElementById("cameraInput").value = text;
+    }
   </script>
 </body>
 </html>
