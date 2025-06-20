@@ -665,10 +665,11 @@
             try {
                 this.updateStatus('🎨 Generating QR code...', 'default', true);
         
+                // Create a temporary div to let QRCode UMD render an <img>
                 const tempDiv = document.createElement('div');
                 document.body.appendChild(tempDiv);
         
-                new QRCode(tempDiv, {
+                const qr = new QRCode(tempDiv, {
                     text: textToEncode,
                     width: 300,
                     height: 300,
@@ -677,24 +678,24 @@
                     correctLevel: QRCode.CorrectLevel.H
                 });
         
-                // Wait for <img> to render and fully load
-                const img = await new Promise((resolve, reject) => {
-                    const checkImg = () => {
-                        const qrImg = tempDiv.querySelector('img');
-                        if (qrImg && qrImg.complete) return resolve(qrImg);
-                        setTimeout(checkImg, 50);
-                    };
-                    checkImg();
+                // Wait for the <img> to be rendered and loaded
+                const img = tempDiv.querySelector('img');
+                if (!img) throw new Error("QR image not generated.");
+        
+                await new Promise((resolve, reject) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => reject(new Error("QR image failed to load."));
                 });
         
+                // Draw to canvas
                 const canvas = this.qrCanvas;
                 const ctx = canvas.getContext('2d');
-        
                 canvas.width = img.naturalWidth;
                 canvas.height = img.naturalHeight;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
         
+                // Cleanup
                 document.body.removeChild(tempDiv);
         
                 this.qrResult.classList.remove('hidden');
@@ -705,6 +706,7 @@
                 this.updateStatus('❌ Error generating QR code. Text might be too long or invalid.', 'destructive');
             }
         }
+
 
 
       updateStatus(message, type = 'default', isLoading = false) {
