@@ -20,8 +20,13 @@
       background: #fff;
     }
 
+    h1 {
+      text-align: center;
+    }
+
     .tabs {
       display: flex;
+      justify-content: center;
       border-bottom: 1px solid var(--border);
       margin-bottom: 1rem;
     }
@@ -33,6 +38,7 @@
       border-bottom: none;
       border-radius: var(--radius) var(--radius) 0 0;
       background: #f9f9f9;
+      margin: 0 0.25rem;
     }
 
     .tab.active {
@@ -58,8 +64,10 @@
 
     .btn-group {
       display: flex;
+      justify-content: center;
       gap: 0.5rem;
       margin: 1rem 0;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -112,6 +120,13 @@
       padding: 0.5rem;
       background: var(--muted);
       border-radius: var(--radius);
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      #qrCodeCanvas {
+        max-width: 90vw;
+      }
     }
   </style>
 </head>
@@ -147,7 +162,10 @@
     <div class="btn-group">
       <button class="btn btn-primary" id="startCamera">Start Camera</button>
       <button class="btn btn-primary" id="captureBtn" disabled>Capture & Scan</button>
+      <button class="btn btn-danger" id="resetCameraBtn">Reset</button>
     </div>
+
+    <textarea id="cameraText" placeholder="Captured text will appear here..."></textarea>
   </div>
 
   <div id="status">💡 Enter text or use the camera to scan it.</div>
@@ -225,8 +243,10 @@
     // Camera logic
     const startCameraBtn = document.getElementById('startCamera');
     const captureBtn = document.getElementById('captureBtn');
+    const resetCameraBtn = document.getElementById('resetCameraBtn');
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
+    const cameraText = document.getElementById('cameraText');
     const ctx = canvas.getContext('2d');
     let stream = null;
 
@@ -260,10 +280,10 @@
 
         const text = result.data.text.trim();
         if (text) {
-          textEditor.value = text;
-          qrResult.style.display = "none";
-          status.textContent = "✅ Text captured. Now go to Manual tab to generate QR.";
+          cameraText.value = text;
+          status.textContent = "✅ Text captured.";
         } else {
+          cameraText.value = "";
           status.textContent = "⚠️ No text detected.";
         }
 
@@ -272,13 +292,20 @@
           stream.getTracks().forEach(track => track.stop());
           video.srcObject = null;
           captureBtn.disabled = true;
-          startCameraBtn.disabled = false;
         }
 
       } catch (err) {
         console.error(err);
         status.textContent = "❌ OCR failed.";
       }
+    });
+
+    resetCameraBtn.addEventListener('click', () => {
+      cameraText.value = "";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      video.srcObject = null;
+      captureBtn.disabled = true;
+      status.textContent = "🧹 Camera tab reset.";
     });
   </script>
 </body>
