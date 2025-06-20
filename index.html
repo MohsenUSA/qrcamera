@@ -195,6 +195,15 @@
   <div id="tab-manual" class="tab-content active">
     <textarea id="textEditor" placeholder="Enter text here..."></textarea>
 
+
+    <div style="margin: 0.5rem 0; display: flex; align-items: center; justify-content: center;">
+  <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.95rem;">
+    <input type="checkbox" id="allCapsToggle" style="margin-right: 0.5rem; cursor: pointer;">
+    Convert to ALL CAPS
+  </label>
+</div>
+
+
     <div class="btn-group">
       <button class="btn btn-primary" id="generateQR">Generate QR Code</button>
       <button class="btn btn-success" id="copyTextBtn">Copy Text</button>
@@ -249,6 +258,7 @@
     const status = document.getElementById('status');
     const textEditor = document.getElementById('textEditor');
     const cameraText = document.getElementById('cameraText');
+    const allCapsToggle = document.getElementById('allCapsToggle');
 
     // Tab switching
     tabs.forEach(tab => {
@@ -259,6 +269,29 @@
         document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
       });
     });
+
+
+    // All caps toggle functionality
+allCapsToggle.addEventListener('change', function() {
+  if (this.checked) {
+    textEditor.value = textEditor.value.toUpperCase();
+  } else {
+    // Store original text if needed or just leave as is
+    textEditor.value = textEditor.value;
+  }
+});
+
+
+
+    // Update text to uppercase while typing if toggle is checked
+textEditor.addEventListener('input', function() {
+  if (allCapsToggle.checked) {
+    const cursorPos = this.selectionStart;
+    this.value = this.value.toUpperCase();
+    this.setSelectionRange(cursorPos, cursorPos);
+  }
+});
+
 
     // Copy to clipboard function
     async function copyTextToClipboard(text) {
