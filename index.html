@@ -203,18 +203,21 @@
       manualTab.classList.remove('active');
     });
 
-    function generateFromText(inputId, canvasId) {
-      const text = document.getElementById(inputId).value.trim();
-      const canvas = document.getElementById(canvasId);
-      if (!text) return alert("Please enter text first.");
-      QRCode.toCanvas(canvas, text, {
-        errorCorrectionLevel: 'H',
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
+    function generateFromText() {
+      const canvas = document.getElementById('qrCodeCanvas');
+      const text = document.getElementById('textEditor').value;
+    
+      const qr = QRCode.default || QRCode;
+    
+      qr.toCanvas(canvas, text, { width: 256, margin: 2 }, function (error) {
+        if (error) {
+          console.error("Failed to generate QR:", error);
+        } else {
+          console.log("QR code generated!");
         }
+      });
+    }
+
       }, function (error) {
         if (error) {
           console.error(error);
