@@ -210,6 +210,42 @@
       display: none;
     }
 
+    .ocr-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-radius: var(--radius);
+      z-index: 10;
+    }
+
+    .ocr-overlay.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     .qr-display {
       margin-top: 1rem;
       display: flex;
@@ -362,16 +398,15 @@
       <canvas id="cameraCanvas" style="display:none;"></canvas>
       <div id="cameraOverlay">Hold steady...</div>
       <div id="focusIndicator" class="focus-indicator">Focus: Good</div>
+      <div id="ocrOverlay" class="ocr-overlay">
+        <div class="spinner"></div>
+        <div id="ocrMessage">🔍 OCR in Progress...</div>
+        <div id="ocrProgress">Initializing...</div>
+      </div>
     </div>
 
     <!-- Enhanced Camera Controls -->
     <div class="camera-controls" id="cameraControls" style="display: none;">
-      <div class="control-group">
-        <label for="focusSlider">🔍 Focus Distance</label>
-        <input type="range" id="focusSlider" class="slider" min="0" max="1" step="0.01" value="0.5">
-        <small>Adjust for text clarity (0 = near, 1 = far)</small>
-      </div>
-      
       <div class="control-group">
         <label for="zoomSlider">🔎 Zoom Level</label>
         <input type="range" id="zoomSlider" class="slider" min="1" max="3" step="0.1" value="1">
@@ -709,32 +744,9 @@
 
     // Setup camera control sliders
     function setupCameraControls() {
-      const focusSlider = document.getElementById('focusSlider');
       const zoomSlider = document.getElementById('zoomSlider');
       const exposureSlider = document.getElementById('exposureSlider');
       const torchToggle = document.getElementById('torchToggle');
-
-      // Focus control
-      if (capabilities.focusDistance) {
-        focusSlider.min = capabilities.focusDistance.min || 0;
-        focusSlider.max = capabilities.focusDistance.max || 1;
-        focusSlider.step = capabilities.focusDistance.step || 0.01;
-        
-        focusSlider.addEventListener('input', async () => {
-          try {
-            await videoTrack.applyConstraints({
-              advanced: [{
-                focusMode: 'manual',
-                focusDistance: parseFloat(focusSlider.value)
-              }]
-            });
-          } catch (err) {
-            console.log('Focus adjustment not supported:', err);
-          }
-        });
-      } else {
-        focusSlider.disabled = true;
-      }
 
       // Zoom control
       if (capabilities.zoom) {
@@ -869,10 +881,12 @@
       const video = document.getElementById('video');
       const cameraCanvas = document.getElementById('cameraCanvas');
       const ctx = cameraCanvas.getContext('2d');
-      const cameraOverlay = document.getElementById('cameraOverlay');
+      const ocrOverlay = document.getElementById('ocrOverlay');
+      const ocrProgress = document.getElementById('ocrProgress');
       
-      status.textContent = "📸 Capturing multiple frames for best quality...";
-      cameraOverlay.style.display = 'block';
+      // Hide video and show OCR overlay
+      ocrOverlay.classList.add('show');
+      ocrProgress.textContent = "Capturing frames...";
       
       const frames = [];
       const frameCount = 8; // Increased frame count
@@ -891,14 +905,15 @@
           sharpness: sharpness
         });
         
+        ocrProgress.textContent = `Capturing frame ${i + 1}/${frameCount}...`;
         await new Promise(resolve => setTimeout(resolve, 100));
       }
-      
-      cameraOverlay.style.display = 'none';
       
       // Use the sharpest frame
       frames.sort((a, b) => b.sharpness - a.sharpness);
       const bestFrame = frames[0];
+      
+      ocrProgress.textContent = "Processing image...";
       
       // Apply the best frame to canvas
       ctx.putImageData(bestFrame.imageData, 0, 0);
@@ -908,13 +923,19 @@
       
       const processedImage = cameraCanvas.toDataURL('image/png');
       
-      status.textContent = "🔍 Performing OCR with enhanced processing...";
+      ocrProgress.textContent = "Starting OCR analysis...";
       
       try {
         const result = await Tesseract.recognize(processedImage, 'eng', {
           logger: m => {
             if (m.status === 'recognizing text') {
-              status.textContent = `🔍 OCR ${Math.round(m.progress * 100)}%...`;
+              ocrProgress.textContent = `OCR Analysis: ${Math.round(m.progress * 100)}%`;
+            } else if (m.status === 'loading tesseract core') {
+              ocrProgress.textContent = "Loading OCR engine...";
+            } else if (m.status === 'initializing tesseract') {
+              ocrProgress.textContent = "Initializing OCR...";
+            } else if (m.status === 'loading language traineddata') {
+              ocrProgress.textContent = "Loading language data...";
             }
           },
           tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
@@ -926,14 +947,18 @@
         const text = result.data.text.trim();
         document.getElementById('cameraText').value = text;
         
+        // Hide OCR overlay
+        ocrOverlay.classList.remove('show');
+        
         if (text) {
           status.textContent = `✅ Text captured successfully! (${text.length} chars)`;
         } else {
-          status.textContent = "⚠️ No text detected. Try adjusting focus, zoom, or lighting.";
+          status.textContent = "⚠️ No text detected. Try adjusting zoom, exposure, or lighting.";
         }
         
       } catch (err) {
         console.error('OCR Error:', err);
+        ocrOverlay.classList.remove('show');
         status.textContent = "❌ OCR processing failed. Please try again.";
       }
       
