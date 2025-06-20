@@ -138,6 +138,10 @@
       border-radius: var(--radius);
       box-sizing: border-box;
       border: 1px solid var(--border);
+      image-rendering: crisp-edges;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
     }
 
     .qr-actions {
@@ -275,37 +279,74 @@
       const qrActions = document.getElementById(actionsId);
       const ctxQR = qrCanvas.getContext("2d");
 
+      // Create a temporary container
       const tempDiv = document.createElement('div');
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
       document.body.appendChild(tempDiv);
 
-      new QRCode(tempDiv, {
-        text,
+      // Generate QR code
+      const qr = new QRCode(tempDiv, {
+        text: text,
         width: 256,
         height: 256,
         colorDark: "#000000",
         colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+        correctLevel: QRCode.CorrectLevel.H,
+        useSVG: false
       });
 
-      const img = tempDiv.querySelector('img');
-      img.onload = () => {
-        qrCanvas.width = img.naturalWidth;
-        qrCanvas.height = img.naturalHeight;
-        ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-        ctxQR.drawImage(img, 0, 0);
-        qrCanvas.style.display = "block";
-        qrActions.classList.add('show');
-        document.body.removeChild(tempDiv);
-      };
+      // Wait a bit for QR code to be generated
+      setTimeout(() => {
+        // Try to get the canvas element first (more reliable)
+        const generatedCanvas = tempDiv.querySelector('canvas');
+        if (generatedCanvas) {
+          // Use canvas directly
+          qrCanvas.width = generatedCanvas.width;
+          qrCanvas.height = generatedCanvas.height;
+          ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+          ctxQR.drawImage(generatedCanvas, 0, 0);
+          qrCanvas.style.display = "block";
+          qrActions.classList.add('show');
+          document.body.removeChild(tempDiv);
+          return;
+        }
 
-      img.onerror = () => {
-        status.textContent = "❌ Failed to load QR image.";
-        qrCanvas.style.display = "none";
-        qrActions.classList.remove('show');
-        document.body.removeChild(tempDiv);
-      };
+        // Fallback to image if canvas not found
+        const img = tempDiv.querySelector('img');
+        if (img) {
+          // For mobile devices, ensure image is loaded
+          if (img.complete) {
+            drawQRImage();
+          } else {
+            img.onload = drawQRImage;
+            img.onerror = () => {
+              status.textContent = "❌ Failed to load QR image.";
+              qrCanvas.style.display = "none";
+              qrActions.classList.remove('show');
+              document.body.removeChild(tempDiv);
+            };
+          }
+
+          function drawQRImage() {
+            qrCanvas.width = 256;
+            qrCanvas.height = 256;
+            ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+            ctxQR.drawImage(img, 0, 0, 256, 256);
+            qrCanvas.style.display = "block";
+            qrActions.classList.add('show');
+            document.body.removeChild(tempDiv);
+          }
+        } else {
+          status.textContent = "❌ Failed to generate QR code.";
+          qrCanvas.style.display = "none";
+          qrActions.classList.remove('show');
+          if (tempDiv.parentNode) {
+            document.body.removeChild(tempDiv);
+          }
+        }
+      }, 100);
     }
 
     // Clear canvas function
