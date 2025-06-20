@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <title>QR Code Test</title>
+  <!-- Load QRCode library first -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
 </head>
 <body>
   <h2>QR Code Test</h2>
   <canvas id="qrCodeCanvas"></canvas>
   <button id="genBtn">Generate QR</button>
+
+  <!-- Your script comes AFTER QRCode library -->
   <script>
     document.getElementById('genBtn').addEventListener('click', () => {
       const canvas = document.getElementById('qrCodeCanvas');
       const text = 'Hello World!';
       canvas.width = 300;
       canvas.height = 300;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       QRCode.toCanvas(canvas, text, function (error) {
         if (error) {
