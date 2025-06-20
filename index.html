@@ -48,6 +48,8 @@
 
     .tab-content {
       display: none;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     .tab-content.active {
@@ -56,6 +58,7 @@
 
     textarea {
       width: 100%;
+      box-sizing: border-box;
       min-height: 120px;
       padding: 0.5rem;
       border-radius: var(--radius);
@@ -105,6 +108,7 @@
       margin-top: 1rem;
       display: flex;
       justify-content: center;
+      padding: 1rem;
     }
 
     #qrCodeCanvas {
@@ -112,6 +116,7 @@
       max-width: 300px;
       height: auto;
       background: white;
+      padding: 1rem;
       border-radius: var(--radius);
       display: none;
     }
@@ -122,6 +127,9 @@
       background: var(--muted);
       border-radius: var(--radius);
       text-align: center;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     @media (max-width: 480px) {
@@ -179,18 +187,27 @@
 
   <div id="status">💡 Enter text or use the camera to scan it.</div>
 
+  <!-- Local JS dependencies -->
   <script src="https://mohsenusa.github.io/qrcamera/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
   <script>
     const tabs = document.querySelectorAll('.tab');
     const tabContents = document.querySelectorAll('.tab-content');
-
     const qrCanvas = document.getElementById('qrCodeCanvas');
     const status = document.getElementById('status');
     const textEditor = document.getElementById('textEditor');
     const cameraText = document.getElementById('cameraText');
-
     const ctxQR = qrCanvas.getContext("2d");
+
+    // Tab switching
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
 
     function generateQRCode(text) {
       const tempDiv = document.createElement('div');
@@ -198,8 +215,8 @@
 
       new QRCode(tempDiv, {
         text,
-        width: 300,
-        height: 300,
+        width: 256,
+        height: 256,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
@@ -244,16 +261,20 @@
       status.textContent = `✅ QR code generated from camera. (${text.length} chars)`;
     };
 
+    function resetCanvas() {
+      ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      qrCanvas.style.display = "none";
+    }
+
     document.getElementById('resetBtn').onclick = () => {
       textEditor.value = "";
-      qrCanvas.style.display = "none";
+      resetCanvas();
       status.textContent = "🧹 Manual tab reset.";
     };
 
     document.getElementById('resetCameraBtn').onclick = () => {
       cameraText.value = "";
-      qrCanvas.style.display = "none";
-      ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      resetCanvas();
       if (video.srcObject) {
         video.srcObject.getTracks().forEach(track => track.stop());
         video.srcObject = null;
@@ -261,16 +282,6 @@
       captureBtn.disabled = true;
       status.textContent = "🧹 Camera tab reset.";
     };
-
-    // Tab switching
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-      });
-    });
 
     // Camera logic
     const video = document.getElementById('video');
