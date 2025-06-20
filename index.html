@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR Code Generator with OCR</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#007bff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="QR Scanner">
+  
+  <!-- Favicon QR code Base64 -->
   <link rel="icon" href="data:image/png;base64,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">
+  
   <style>
     :root {
       --radius: 0.5rem;
@@ -228,7 +238,6 @@
   </div>
 
   <div id="status">💡 Enter text or use the camera to scan it.</div>
-  <div id="status">Made with ❤️ in Seattle by Mohsen</div>
 
   <!-- Local JS dependencies -->
   <script src="https://mohsenusa.github.io/qrcamera/qrcode.min.js"></script>
