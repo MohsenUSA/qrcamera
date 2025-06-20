@@ -113,7 +113,7 @@
       border: 1px solid var(--border);
     }
 
-    #qrCodeCanvas {
+    canvas.qr-canvas {
       background: white;
       border-radius: var(--radius);
       padding: 2rem;
@@ -132,7 +132,7 @@
     }
 
     @media (max-width: 480px) {
-      #qrCodeCanvas {
+      canvas.qr-canvas {
         max-width: 90vw;
       }
     }
@@ -150,11 +150,11 @@
       <h3>✏️ Enter Text</h3>
       <textarea id="manualInput" placeholder="Enter your text here..."></textarea>
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="generateFromText('manualInput')">Generate QR</button>
-        <button class="btn btn-danger" onclick="resetAll('manualInput')">Reset</button>
+        <button class="btn btn-primary" onclick="generateFromText('manualInput', 'qrCanvasManual')">Generate QR</button>
+        <button class="btn btn-danger" onclick="resetAll('manualInput', 'qrCanvasManual')">Reset</button>
       </div>
       <div class="qr-display">
-        <canvas id="qrCodeCanvas" width="300" height="300"></canvas>
+        <canvas id="qrCanvasManual" class="qr-canvas" width="300" height="300"></canvas>
       </div>
     </div>
   </div>
@@ -166,14 +166,14 @@
       <div class="btn-group">
         <button class="btn btn-primary" onclick="startCamera()">Start Camera</button>
         <button class="btn btn-primary" onclick="captureAndScan()">Capture & Scan</button>
-        <button class="btn btn-danger" onclick="resetAll('cameraInput')">Reset</button>
+        <button class="btn btn-danger" onclick="resetAll('cameraInput', 'qrCanvasCamera')">Reset</button>
       </div>
       <textarea id="cameraInput" placeholder="Scanned text will appear here..."></textarea>
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="generateFromText('cameraInput')">Generate QR</button>
+        <button class="btn btn-primary" onclick="generateFromText('cameraInput', 'qrCanvasCamera')">Generate QR</button>
       </div>
       <div class="qr-display">
-        <canvas id="qrCodeCanvas" width="300" height="300"></canvas>
+        <canvas id="qrCanvasCamera" class="qr-canvas" width="300" height="300"></canvas>
       </div>
     </div>
   </div>
@@ -186,8 +186,6 @@
     const manualTab = document.getElementById('manualTab');
     const cameraTab = document.getElementById('cameraTab');
     const video = document.getElementById('video');
-    const canvas = document.getElementById('qrCodeCanvas');
-    const ctx = canvas.getContext('2d');
     let stream = null;
 
     tabManual.addEventListener('click', () => {
@@ -205,8 +203,9 @@
       manualTab.classList.remove('active');
     });
 
-    function generateFromText(inputId) {
+    function generateFromText(inputId, canvasId) {
       const text = document.getElementById(inputId).value.trim();
+      const canvas = document.getElementById(canvasId);
       if (!text) return alert("Please enter text first.");
       QRCode.toCanvas(canvas, text, {
         errorCorrectionLevel: 'H',
@@ -226,12 +225,10 @@
       });
     }
 
-    function resetAll(inputId) {
+    function resetAll(inputId, canvasId) {
       document.getElementById(inputId).value = '';
-      clearCanvas();
-    }
-
-    function clearCanvas() {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       canvas.style.display = 'none';
     }
