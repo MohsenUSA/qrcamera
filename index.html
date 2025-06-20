@@ -10,35 +10,15 @@
   <button id="generateQR">Generate QR</button>
   <canvas id="qrCodeCanvas"></canvas>
 
-  <script>
-    document.getElementById('generateQR').addEventListener('click', async () => {
-      const text = document.getElementById('textEditor').value.trim();
-      const canvas = document.getElementById('qrCodeCanvas');
+  <script type="module">
+  import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/es/index.js";
 
-      if (!text) {
-        alert("No text to generate QR");
-        return;
-      }
+  const canvas = document.getElementById("qrCodeCanvas");
+  QRCode.toCanvas(canvas, "Hello", function (error) {
+    if (error) console.error(error);
+    else console.log("done!");
+  });
+</script>
 
-      try {
-        // Set canvas size and clear
-        canvas.width = 300;
-        canvas.height = 300;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        await QRCode.toCanvas(canvas, text, {
-          width: 300,
-          margin: 2
-        });
-
-        console.log('QR Code generated');
-
-      } catch (err) {
-        console.error('QR Error:', err);
-        alert("Failed to generate QR: " + err.message);
-      }
-    });
-  </script>
 </body>
 </html>
