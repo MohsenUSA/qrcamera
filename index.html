@@ -119,6 +119,7 @@
     }
 
     .media-container {
+      position: relative;
       max-width: 100%;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -129,6 +130,18 @@
     video, canvas {
       width: 100%;
       display: block;
+    }
+
+    #cameraOverlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
     }
 
     .qr-display {
@@ -183,64 +196,63 @@
     }
 
     /* Toggle Switch Styles */
-.toggle-container {
-  margin: 0.5rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
+    .toggle-container {
+      margin: 0.5rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
 
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
 
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
 
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .3s;
-  border-radius: 24px;
-}
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 24px;
+    }
 
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
-}
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
 
-input:checked + .toggle-slider {
-  background-color: var(--primary);
-}
+    input:checked + .toggle-slider {
+      background-color: var(--primary);
+    }
 
-input:checked + .toggle-slider:before {
-  transform: translateX(26px);
-}
+    input:checked + .toggle-slider:before {
+      transform: translateX(26px);
+    }
 
-.toggle-label {
-  font-size: 0.95rem;
-  user-select: none;
-}
-
+    .toggle-label {
+      font-size: 0.95rem;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -255,15 +267,13 @@ input:checked + .toggle-slider:before {
   <div id="tab-manual" class="tab-content active">
     <textarea id="textEditor" placeholder="Enter text here..."></textarea>
 
-
     <div class="toggle-container">
-  <label class="toggle-switch">
-    <input type="checkbox" id="allCapsToggle">
-    <span class="toggle-slider"></span>
-  </label>
-  <span class="toggle-label">ALL CAPS</span>
-</div>
-
+      <label class="toggle-switch">
+        <input type="checkbox" id="allCapsToggle">
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">ALL CAPS</span>
+    </div>
 
     <div class="btn-group">
       <button class="btn btn-primary" id="generateQR">Generate QR Code</button>
@@ -284,6 +294,7 @@ input:checked + .toggle-slider:before {
     <div class="media-container">
       <video id="video" autoplay playsinline></video>
       <canvas id="cameraCanvas" style="display:none;"></canvas>
+      <div id="cameraOverlay">Hold steady...</div>
     </div>
 
     <div class="btn-group">
@@ -308,7 +319,7 @@ input:checked + .toggle-slider:before {
   </div>
 
   <div id="status">💡 Enter text or use the camera to scan it.</div>
-  <div id="status">Made with ❤️ in Seattle by Mohsen</div>
+  <div style="text-align: center; padding: 0.5rem; color: #666;">Made with ❤️ in Seattle by Mohsen</div>
 
   <!-- Local JS dependencies -->
   <script src="https://mohsenusa.github.io/qrcamera/qrcode.min.js"></script>
@@ -331,28 +342,24 @@ input:checked + .toggle-slider:before {
       });
     });
 
-
     // All caps toggle functionality
-allCapsToggle.addEventListener('change', function() {
-  if (this.checked) {
-    textEditor.value = textEditor.value.toUpperCase();
-  } else {
-    // Store original text if needed or just leave as is
-    textEditor.value = textEditor.value;
-  }
-});
-
-
+    allCapsToggle.addEventListener('change', function() {
+      if (this.checked) {
+        textEditor.value = textEditor.value.toUpperCase();
+      } else {
+        // Store original text if needed or just leave as is
+        textEditor.value = textEditor.value;
+      }
+    });
 
     // Update text to uppercase while typing if toggle is checked
-textEditor.addEventListener('input', function() {
-  if (allCapsToggle.checked) {
-    const cursorPos = this.selectionStart;
-    this.value = this.value.toUpperCase();
-    this.setSelectionRange(cursorPos, cursorPos);
-  }
-});
-
+    textEditor.addEventListener('input', function() {
+      if (allCapsToggle.checked) {
+        const cursorPos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(cursorPos, cursorPos);
+      }
+    });
 
     // Copy to clipboard function
     async function copyTextToClipboard(text) {
@@ -487,132 +494,221 @@ textEditor.addEventListener('input', function() {
       actions.classList.remove('show');
     }
 
-    // Manual tab event listeners
-    document.getElementById('generateQR').onclick = () => {
-      const text = textEditor.value.trim();
-      if (!text) {
-        status.textContent = "❌ Please enter some text.";
-        resetCanvas('qrCodeCanvas', 'qrActionsManual');
-        return;
+    // Calculate image sharpness
+    function calculateSharpness(imageData) {
+      const data = imageData.data;
+      let sharpness = 0;
+      
+      for (let y = 1; y < imageData.height - 1; y++) {
+        for (let x = 1; x < imageData.width - 1; x++) {
+          const idx = (y * imageData.width + x) * 4;
+          const center = data[idx];
+          const diff = Math.abs(center - data[idx - 4]) + 
+                       Math.abs(center - data[idx + 4]) +
+                       Math.abs(center - data[idx - imageData.width * 4]) +
+                       Math.abs(center - data[idx + imageData.width * 4]);
+          sharpness += diff;
+        }
       }
-      generateQRCode(text, 'qrCodeCanvas', 'qrActionsManual');
-      status.textContent = `✅ QR code generated. (${text.length} chars)`;
-    };
+      
+      return sharpness / (imageData.width * imageData.height);
+    }
 
-    document.getElementById('copyTextBtn').onclick = () => {
-      const text = textEditor.value.trim();
-      if (!text) {
-        status.textContent = "❌ No text to copy.";
-        return;
+    // Enhance image for better OCR
+    function enhanceImageForOCR(canvas) {
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      // Convert to grayscale
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11;
+        data[i] = data[i + 1] = data[i + 2] = gray;
       }
-      copyTextToClipboard(text);
-    };
+      
+      ctx.putImageData(imageData, 0, 0);
+      // Increase contrast
+     ctx.filter = 'contrast(1.5) brightness(1.1)';
+     ctx.drawImage(canvas, 0, 0);
+     
+     return canvas;
+   }
 
-    document.getElementById('downloadQRBtn').onclick = () => {
-      downloadQRCode(document.getElementById('qrCodeCanvas'));
-    };
+   // Manual tab event listeners
+   document.getElementById('generateQR').onclick = () => {
+     const text = textEditor.value.trim();
+     if (!text) {
+       status.textContent = "❌ Please enter some text.";
+       resetCanvas('qrCodeCanvas', 'qrActionsManual');
+       return;
+     }
+     generateQRCode(text, 'qrCodeCanvas', 'qrActionsManual');
+     status.textContent = `✅ QR code generated. (${text.length} chars)`;
+   };
 
-    document.getElementById('resetBtn').onclick = () => {
-      textEditor.value = "";
-      resetCanvas('qrCodeCanvas', 'qrActionsManual');
-      status.textContent = "🧹 Manual tab reset.";
-    };
+   document.getElementById('copyTextBtn').onclick = () => {
+     const text = textEditor.value.trim();
+     if (!text) {
+       status.textContent = "❌ No text to copy.";
+       return;
+     }
+     copyTextToClipboard(text);
+   };
 
-    // Camera tab event listeners
-    document.getElementById('generateQRFromCamera').onclick = () => {
-      const text = cameraText.value.trim();
-      if (!text) {
-        status.textContent = "❌ No scanned text to generate QR.";
-        resetCanvas('qrCodeCanvasCamera', 'qrActionsCamera');
-        return;
-      }
-      generateQRCode(text, 'qrCodeCanvasCamera', 'qrActionsCamera');
-      status.textContent = `✅ QR code generated from camera. (${text.length} chars)`;
-    };
+   document.getElementById('downloadQRBtn').onclick = () => {
+     downloadQRCode(document.getElementById('qrCodeCanvas'));
+   };
 
-    document.getElementById('copyCameraTextBtn').onclick = () => {
-      const text = cameraText.value.trim();
-      if (!text) {
-        status.textContent = "❌ No text to copy.";
-        return;
-      }
-      copyTextToClipboard(text);
-    };
+   document.getElementById('resetBtn').onclick = () => {
+     textEditor.value = "";
+     resetCanvas('qrCodeCanvas', 'qrActionsManual');
+     status.textContent = "🧹 Manual tab reset.";
+   };
 
-    document.getElementById('downloadQRCameraBtn').onclick = () => {
-      downloadQRCode(document.getElementById('qrCodeCanvasCamera'));
-    };
+   // Camera tab event listeners
+   document.getElementById('generateQRFromCamera').onclick = () => {
+     const text = cameraText.value.trim();
+     if (!text) {
+       status.textContent = "❌ No scanned text to generate QR.";
+       resetCanvas('qrCodeCanvasCamera', 'qrActionsCamera');
+       return;
+     }
+     generateQRCode(text, 'qrCodeCanvasCamera', 'qrActionsCamera');
+     status.textContent = `✅ QR code generated from camera. (${text.length} chars)`;
+   };
 
-    document.getElementById('resetCameraBtn').onclick = () => {
-      cameraText.value = "";
-      resetCanvas('qrCodeCanvasCamera', 'qrActionsCamera');
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-      }
-      captureBtn.disabled = true;
-      status.textContent = "🧹 Camera tab reset.";
-    };
+   document.getElementById('copyCameraTextBtn').onclick = () => {
+     const text = cameraText.value.trim();
+     if (!text) {
+       status.textContent = "❌ No text to copy.";
+       return;
+     }
+     copyTextToClipboard(text);
+   };
 
-    // Camera logic
-    const video = document.getElementById('video');
-    const cameraCanvas = document.getElementById('cameraCanvas');
-    const ctx = cameraCanvas.getContext('2d');
-    const startCameraBtn = document.getElementById('startCamera');
-    const captureBtn = document.getElementById('captureBtn');
+   document.getElementById('downloadQRCameraBtn').onclick = () => {
+     downloadQRCode(document.getElementById('qrCodeCanvasCamera'));
+   };
 
-    let stream = null;
+   document.getElementById('resetCameraBtn').onclick = () => {
+     cameraText.value = "";
+     resetCanvas('qrCodeCanvasCamera', 'qrActionsCamera');
+     if (video.srcObject) {
+       video.srcObject.getTracks().forEach(track => track.stop());
+       video.srcObject = null;
+     }
+     captureBtn.disabled = true;
+     status.textContent = "🧹 Camera tab reset.";
+   };
 
-    startCameraBtn.addEventListener('click', async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'environment' } 
-        });
-        video.srcObject = stream;
-        captureBtn.disabled = false;
-        status.textContent = "📷 Camera started.";
-      } catch (err) {
-        console.error(err);
-        status.textContent = "❌ Failed to access camera.";
-      }
-    });
+   // Camera logic
+   const video = document.getElementById('video');
+   const cameraCanvas = document.getElementById('cameraCanvas');
+   const ctx = cameraCanvas.getContext('2d');
+   const startCameraBtn = document.getElementById('startCamera');
+   const captureBtn = document.getElementById('captureBtn');
+   const cameraOverlay = document.getElementById('cameraOverlay');
 
-    captureBtn.addEventListener('click', async () => {
-      cameraCanvas.width = video.videoWidth;
-      cameraCanvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
-      const imageData = cameraCanvas.toDataURL('image/png');
+   let stream = null;
 
-      status.textContent = "🔍 Scanning text...";
+   // Enhanced camera start with better settings
+   startCameraBtn.addEventListener('click', async () => {
+     try {
+       stream = await navigator.mediaDevices.getUserMedia({ 
+         video: { 
+           facingMode: 'environment',
+           width: { ideal: 1920 },
+           height: { ideal: 1080 },
+           focusMode: { ideal: 'continuous' },
+           exposureMode: { ideal: 'continuous' },
+           whiteBalanceMode: { ideal: 'continuous' }
+         } 
+       });
+       video.srcObject = stream;
+       captureBtn.disabled = false;
+       status.textContent = "📷 Camera started.";
+     } catch (err) {
+       console.error(err);
+       status.textContent = "❌ Failed to access camera.";
+     }
+   });
 
-      // Tesseract configuration
-      const result = await Tesseract.recognize(imageData, 'eng', {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            status.textContent = `🔍 OCR ${Math.round(m.progress * 100)}%...`;
-          }
-        },
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
-        tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.!? ',
-        preserve_interword_spaces: '1',
-        user_defined_dpi: '300'
-      });
-
-      const text = result.data.text.trim();
-      cameraText.value = text;
-
-      if (text) {
-        status.textContent = "✅ Text captured.";
-      } else {
-        status.textContent = "⚠️ No text detected.";
-      }
-
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        captureBtn.disabled = true;
-      }
-    });
-  </script>
+   // Enhanced capture with multiple frames and preprocessing
+   captureBtn.addEventListener('click', async () => {
+     status.textContent = "📸 Capturing best frame...";
+     cameraOverlay.style.display = 'block';
+     
+     // Capture multiple frames
+     const frames = [];
+     const frameCount = 5;
+     
+     for (let i = 0; i < frameCount; i++) {
+       cameraCanvas.width = video.videoWidth;
+       cameraCanvas.height = video.videoHeight;
+       ctx.drawImage(video, 0, 0, cameraCanvas.width, cameraCanvas.height);
+       
+       // Calculate sharpness score
+       const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
+       const sharpness = calculateSharpness(imageData);
+       
+       frames.push({
+         dataUrl: cameraCanvas.toDataURL('image/png'),
+         sharpness: sharpness
+       });
+       
+       await new Promise(resolve => setTimeout(resolve, 100));
+     }
+     
+     // Hide overlay
+     cameraOverlay.style.display = 'none';
+     
+     // Use sharpest frame
+     frames.sort((a, b) => b.sharpness - a.sharpness);
+     const bestFrame = frames[0].dataUrl;
+     
+     // Preprocess the image
+     const img = new Image();
+     img.onload = async () => {
+       ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+       ctx.drawImage(img, 0, 0);
+       
+       // Apply preprocessing
+       enhanceImageForOCR(cameraCanvas);
+       
+       const processedImage = cameraCanvas.toDataURL('image/png');
+       
+       status.textContent = "🔍 Scanning text...";
+       
+       const result = await Tesseract.recognize(processedImage, 'eng', {
+         logger: m => {
+           if (m.status === 'recognizing text') {
+             status.textContent = `🔍 OCR ${Math.round(m.progress * 100)}%...`;
+           }
+         },
+         tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+         tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.!? ',
+         preserve_interword_spaces: '1',
+         user_defined_dpi: '300'
+       });
+       
+       const text = result.data.text.trim();
+       cameraText.value = text;
+       
+       if (text) {
+         status.textContent = "✅ Text captured.";
+       } else {
+         status.textContent = "⚠️ No text detected. Try holding steadier or better lighting.";
+       }
+     };
+     img.src = bestFrame;
+     
+     // Stop camera
+     if (stream) {
+       stream.getTracks().forEach(track => track.stop());
+       video.srcObject = null;
+       captureBtn.disabled = true;
+     }
+   });
+ </script>
 </body>
 </html>
