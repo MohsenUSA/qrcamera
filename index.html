@@ -204,17 +204,22 @@
     });
 
     function generateFromText() {
-      const canvas = document.getElementById('qrCodeCanvas');
-      const text = document.getElementById('manualInput').value;
+      const text = document.getElementById('manualInput').value.trim();
+    
+      if (!text) {
+        alert('Please enter some text.');
+        return;
+      }
     
       const qr = QRCode.default || QRCode;
     
-      qr.toCanvas(canvas, text, { width: 256, margin: 2 }, function (error) {
+      qr.toCanvas(document.getElementById('qrCodeCanvas'), text, { width: 256, margin: 8 }, (error) => {
         if (error) {
-          console.error("Failed to generate QR:", error);
+          console.error('Failed to generate QR:', error);
         } else {
-          console.log("QR code generated!");
+          console.log('QR code generated!');
         }
+
 
       }, function (error) {
         if (error) {
