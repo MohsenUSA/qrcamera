@@ -2,23 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>QR Test</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+  <title>QR Code Module Test</title>
 </head>
 <body>
-  <textarea id="textEditor" placeholder="Enter text">1</textarea>
-  <button id="generateQR">Generate QR</button>
+  <h2>QR Code (ES Module Test)</h2>
   <canvas id="qrCodeCanvas"></canvas>
 
   <script type="module">
-  import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/es/index.js";
+    import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/es/index.js";
 
-  const canvas = document.getElementById("qrCodeCanvas");
-  QRCode.toCanvas(canvas, "Hello", function (error) {
-    if (error) console.error(error);
-    else console.log("done!");
-  });
-</script>
-
+    const canvas = document.getElementById("qrCodeCanvas");
+    QRCode.toCanvas(canvas, "Hello", function (error) {
+      if (error) {
+        console.error("QR Code generation error:", error);
+      } else {
+        console.log("✅ QR Code generated successfully!");
+      }
+    });
+  </script>
 </body>
 </html>
