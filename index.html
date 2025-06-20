@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR Code Generator with OCR - Enhanced Focus</title>
+  <title>QR Code Generator with OCR</title>
   
   <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#007bff">
@@ -358,7 +358,7 @@
   </style>
 </head>
 <body>
-  <h3>📱 QR Code Generator with OCR - Enhanced Focus 📱</h3>
+  <h3>📱 QR Code Generator with OCR 📱</h3>
 
   <div class="tabs">
     <div class="tab active" data-tab="manual">Manual Input</div>
@@ -407,18 +407,6 @@
 
     <!-- Enhanced Camera Controls -->
     <div class="camera-controls" id="cameraControls" style="display: none;">
-      <div class="control-group">
-        <label for="zoomSlider">🔎 Zoom Level</label>
-        <input type="range" id="zoomSlider" class="slider" min="1" max="3" step="0.1" value="1">
-        <small>Zoom in for better text recognition</small>
-      </div>
-      
-      <div class="control-group">
-        <label for="exposureSlider">☀️ Exposure</label>
-        <input type="range" id="exposureSlider" class="slider" min="-3" max="3" step="0.5" value="0">
-        <small>Adjust brightness (-3 = darker, +3 = brighter)</small>
-      </div>
-
       <div class="toggle-container">
         <label class="toggle-switch">
           <input type="checkbox" id="torchToggle">
@@ -744,52 +732,7 @@
 
     // Setup camera control sliders
     function setupCameraControls() {
-      const zoomSlider = document.getElementById('zoomSlider');
-      const exposureSlider = document.getElementById('exposureSlider');
       const torchToggle = document.getElementById('torchToggle');
-
-      // Zoom control
-      if (capabilities.zoom) {
-        zoomSlider.min = capabilities.zoom.min || 1;
-        zoomSlider.max = Math.min(capabilities.zoom.max || 3, 3);
-        zoomSlider.step = capabilities.zoom.step || 0.1;
-        
-        zoomSlider.addEventListener('input', async () => {
-          try {
-            await videoTrack.applyConstraints({
-              advanced: [{
-                zoom: parseFloat(zoomSlider.value)
-              }]
-            });
-          } catch (err) {
-            console.log('Zoom adjustment not supported:', err);
-          }
-        });
-      } else {
-        zoomSlider.disabled = true;
-      }
-
-      // Exposure control
-      if (capabilities.exposureCompensation) {
-        exposureSlider.min = capabilities.exposureCompensation.min || -3;
-        exposureSlider.max = capabilities.exposureCompensation.max || 3;
-        exposureSlider.step = capabilities.exposureCompensation.step || 0.5;
-        
-        exposureSlider.addEventListener('input', async () => {
-          try {
-            await videoTrack.applyConstraints({
-              advanced: [{
-                exposureMode: 'manual',
-                exposureCompensation: parseFloat(exposureSlider.value)
-              }]
-            });
-          } catch (err) {
-            console.log('Exposure adjustment not supported:', err);
-          }
-        });
-      } else {
-        exposureSlider.disabled = true;
-      }
 
       // Torch/flashlight control
       if (capabilities.torch) {
@@ -884,7 +827,17 @@
       const ocrOverlay = document.getElementById('ocrOverlay');
       const ocrProgress = document.getElementById('ocrProgress');
       
-      // Hide video and show OCR overlay
+      // Stop camera immediately and show OCR overlay
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        document.getElementById('captureBtn').disabled = true;
+        document.getElementById('autoFocusBtn').disabled = true;
+        document.getElementById('cameraControls').style.display = 'none';
+        document.getElementById('focusIndicator').style.display = 'none';
+      }
+      
+      // Show OCR overlay
       ocrOverlay.classList.add('show');
       ocrProgress.textContent = "Capturing frames...";
       
@@ -953,23 +906,13 @@
         if (text) {
           status.textContent = `✅ Text captured successfully! (${text.length} chars)`;
         } else {
-          status.textContent = "⚠️ No text detected. Try adjusting zoom, exposure, or lighting.";
+          status.textContent = "⚠️ No text detected. Try restarting camera with better lighting.";
         }
         
       } catch (err) {
         console.error('OCR Error:', err);
         ocrOverlay.classList.remove('show');
         status.textContent = "❌ OCR processing failed. Please try again.";
-      }
-      
-      // Stop camera after capture
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        document.getElementById('captureBtn').disabled = true;
-        document.getElementById('autoFocusBtn').disabled = true;
-        document.getElementById('cameraControls').style.display = 'none';
-        document.getElementById('focusIndicator').style.display = 'none';
       }
     }
 
