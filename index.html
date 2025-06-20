@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>QR Code Module Test</title>
+  <title>QR Code ES Module Test (Fixed)</title>
 </head>
 <body>
-  <h2>QR Code (ES Module Test)</h2>
+  <h2>QR Code (Fixed Module Test)</h2>
   <canvas id="qrCodeCanvas"></canvas>
 
   <script type="module">
-    import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/es/index.js";
+    import QRCode from "https://unpkg.com/qrcode@1.5.3/es/index.js";
 
     const canvas = document.getElementById("qrCodeCanvas");
     QRCode.toCanvas(canvas, "Hello", function (error) {
