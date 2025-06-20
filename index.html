@@ -1058,7 +1058,7 @@
     document.getElementById('resetBtn').onclick = () => {
       textEditor.value = "";
       resetCanvas('qrCodeCanvas', 'qrActionsManual');
-      status.textContent = "🧹 Manual tab reset.";
+      status.textContent = "🧹 Manual tab reset - Memory Cleared.";
     };
 
     // Enhanced camera tab event listeners
@@ -1129,7 +1129,7 @@
       document.getElementById('focusIndicator').style.display = 'none';
       document.getElementById('ocrOverlay').classList.remove('show');
       
-      status.textContent = "🧹 Camera reset - all image data cleared from memory.";
+      status.textContent = "🧹 Camera reset - All Image Data Cleared from Memory.";
     };
 
     // Enhanced camera controls
@@ -1170,24 +1170,33 @@
       }
     });
   </script>
-    <footer style="
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  padding: 1rem 0;
-  background-color: white;
-  font-size: 0.9rem;
-  color: #6c757d;
-  z-index: 1000;
-">
-  Made with ❤️ in Seattle by
-  <a href="https://www.linkedin.com/in/mohajiho"
-     target="_blank"
-     style="text-decoration: none; color: inherit;">
-    Mohsen
-  </a>
-</footer>
+  <footer style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem 0;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #6c757d;
+  
+    /* Liquid glass effect */
+    background: rgba(255 255 255 / 0.3);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+  
+    border-top: 1px solid rgba(255 255 255 / 0.4);
+    box-shadow: 0 -2px 8px rgba(0 0 0 / 0.1);
+  
+    z-index: 1000;
+  ">
+    Made with ❤️ in Seattle by
+    <a href="https://www.linkedin.com/in/mohajiho"
+       target="_blank"
+       style="text-decoration: none; color: inherit;">
+      Mohsen
+    </a>
+  </footer>
+
 </body>
 </html>
