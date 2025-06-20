@@ -7,6 +7,53 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <style>
+        /* CSS Variables - shadcn/ui design tokens */
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 222.2 84% 4.9%;
+            --primary: 221.2 83.2% 53.3%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 210 40% 96%;
+            --secondary-foreground: 222.2 84% 4.9%;
+            --muted: 210 40% 96%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --accent: 210 40% 96%;
+            --accent-foreground: 222.2 84% 4.9%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 214.3 31.8% 91.4%;
+            --input: 214.3 31.8% 91.4%;
+            --ring: 221.2 83.2% 53.3%;
+            --radius: 0.5rem;
+        }
+
+        /* Dark mode */
+        .dark {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 217.2 91.2% 59.8%;
+            --primary-foreground: 222.2 84% 4.9%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 224.3 76.3% 94.1%;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,231 +61,398 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            line-height: 1.5;
             min-height: 100vh;
-            padding: 20px;
-            color: white;
+            padding: 1rem;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            space-y: 1.5rem;
         }
 
-        h1 {
+        /* Card component */
+        .card {
+            background-color: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) + 2px);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 0;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 0.5rem;
         }
 
-        .camera-section {
-            margin-bottom: 30px;
+        .card-description {
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+            text-align: center;
+        }
+
+        /* Button component */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            gap: 0.5rem;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid hsl(var(--ring));
+            outline-offset: 2px;
+        }
+
+        .btn:disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .btn-primary {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            height: 2.5rem;
+            padding: 0 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: hsl(var(--primary) / 0.9);
+        }
+
+        .btn-secondary {
+            background-color: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+            height: 2.25rem;
+            padding: 0 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: hsl(var(--secondary) / 0.8);
+        }
+
+        .btn-destructive {
+            background-color: hsl(var(--destructive));
+            color: hsl(var(--destructive-foreground));
+            height: 2.25rem;
+            padding: 0 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-destructive:hover {
+            background-color: hsl(var(--destructive) / 0.9);
+        }
+
+        .btn-outline {
+            border: 1px solid hsl(var(--border));
+            background-color: hsl(var(--background));
+            height: 2.25rem;
+            padding: 0 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-outline:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        /* Input component */
+        .input {
+            display: flex;
+            width: 100%;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            background-color: hsl(var(--background));
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.15s ease-in-out;
+            color: hsl(var(--foreground));
+        }
+
+        .input:focus {
+            outline: 2px solid hsl(var(--ring));
+            outline-offset: 2px;
+        }
+
+        .input::placeholder {
+            color: hsl(var(--muted-foreground));
+        }
+
+        .input:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Textarea */
+        .textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Alert component */
+        .alert {
+            position: relative;
+            width: 100%;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin: 1rem 0;
+        }
+
+        .alert-default {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        .alert-destructive {
+            border-color: hsl(var(--destructive) / 0.5);
+            color: hsl(var(--destructive));
+            background-color: hsl(var(--destructive) / 0.05);
+        }
+
+        .alert-success {
+            border-color: hsl(142.1 76.2% 36.3% / 0.5);
+            color: hsl(142.1 76.2% 36.3%);
+            background-color: hsl(142.1 76.2% 36.3% / 0.05);
+        }
+
+        .alert-warning {
+            border-color: hsl(32.9 100% 59.4% / 0.5);
+            color: hsl(32.9 100% 59.4%);
+            background-color: hsl(32.9 100% 59.4% / 0.05);
+        }
+
+        /* Video and Canvas */
+        .media-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid hsl(var(--border));
         }
 
         video, canvas {
             width: 100%;
-            max-width: 500px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            height: auto;
             display: block;
-            margin: 0 auto 20px;
         }
 
-        .controls {
+        /* Button groups */
+        .btn-group {
             display: flex;
-            justify-content: center;
-            gap: 15px;
+            gap: 0.5rem;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            justify-content: center;
+            margin: 1rem 0;
         }
 
-        button {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        .btn-group-sm {
+            gap: 0.25rem;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .status {
-            text-align: center;
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            font-size: 18px;
-        }
-
-        .results {
-            margin-top: 30px;
-        }
-
-        .text-result, .qr-result {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        .text-result h3, .qr-result h3 {
-            margin-bottom: 15px;
-            color: #FFD93D;
-        }
-
-        .detected-text {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 10px;
+        /* Text display */
+        .text-display {
+            background-color: hsl(var(--muted));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 0.75rem;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.875rem;
             white-space: pre-wrap;
             word-break: break-word;
             max-height: 200px;
             overflow-y: auto;
+            margin: 1rem 0;
         }
 
-        .text-editor {
-            width: 100%;
-            min-height: 120px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            color: white;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-        }
-
-        .text-editor:focus {
-            outline: none;
-            border-color: #4ECDC4;
-            box-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
-        }
-
-        .text-editor::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .text-options {
-            margin: 15px 0;
+        /* QR Code display */
+        .qr-display {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
-        }
-
-        .text-options button {
-            padding: 8px 16px;
-            font-size: 14px;
-            background: linear-gradient(45deg, #6C5CE7, #A29BFE);
-        }
-
-        .selection-info {
-            background: rgba(255, 215, 0, 0.2);
-            color: #FFD93D;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-size: 14px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 2rem;
+            background-color: hsl(var(--muted));
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
         }
 
         #qrCodeCanvas {
+            border-radius: var(--radius);
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 0 auto;
-            display: block;
+            padding: 1rem;
         }
 
+        /* Selection info */
+        .selection-info {
+            background-color: hsl(var(--muted));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .selection-text {
+            font-weight: 500;
+            color: hsl(var(--foreground));
+        }
+
+        /* Utilities */
         .hidden {
             display: none;
         }
 
-        .loading {
+        .text-center {
+            text-align: center;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .space-y-2 > * + * {
+            margin-top: 0.5rem;
+        }
+
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+
+        /* Loading spinner */
+        .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 16px;
+            height: 16px;
+            border: 2px solid hsl(var(--border));
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top-color: hsl(var(--primary));
             animation: spin 1s ease-in-out infinite;
+            margin-left: 0.5rem;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .error {
-            background: rgba(255, 107, 107, 0.2);
-            color: #FFB3B3;
-            border: 1px solid rgba(255, 107, 107, 0.3);
+        /* Responsive */
+        @media (max-width: 640px) {
+            body {
+                padding: 0.5rem;
+            }
+            
+            .card-content {
+                padding: 1rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📱📄 Text Scanner to QR Code</h1>
+    <div class="container space-y-6">
+        <!-- Header Card -->
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">📱 Text Scanner to QR Code</h1>
+                <p class="card-description">Scan text with your camera and generate QR codes instantly</p>
+            </div>
+        </div>
         
-        <div class="camera-section">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas" class="hidden"></canvas>
-            
-            <div class="controls">
-                <button id="startCamera">Start Camera</button>
-                <button id="captureBtn" disabled>Capture & Scan Text</button>
-                <button id="stopCamera" disabled>Stop Camera</button>
+        <!-- Camera Card -->
+        <div class="card">
+            <div class="card-content space-y-4">
+                <div class="media-container">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="startCamera" class="btn btn-primary">📷 Start Camera</button>
+                    <button id="captureBtn" class="btn btn-secondary" disabled>📸 Capture & Scan</button>
+                    <button id="stopCamera" class="btn btn-destructive" disabled>⏹️ Stop Camera</button>
+                </div>
             </div>
         </div>
 
-        <div id="status" class="status">Click "Start Camera" to begin</div>
+        <!-- Status Alert -->
+        <div id="status" class="alert alert-default">
+            Click "Start Camera" to begin scanning text
+        </div>
 
-        <div class="results">
-            <div id="textResult" class="text-result hidden">
-                <h3>🔍 Detected Text:</h3>
-                <div id="detectedText" class="detected-text"></div>
+        <!-- Text Results Card -->
+        <div id="textResult" class="card hidden">
+            <div class="card-content space-y-4">
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">🔍 Detected Text</h3>
+                    <div id="detectedText" class="text-display"></div>
+                </div>
                 
-                <h3 style="margin-top: 25px;">✏️ Edit & Select Text for QR Code:</h3>
-                <textarea id="textEditor" class="text-editor" placeholder="Edit the detected text here or type your own text..."></textarea>
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">✏️ Edit & Select Text</h3>
+                    <textarea 
+                        id="textEditor" 
+                        class="input textarea" 
+                        placeholder="Edit the detected text here or type your own text..."
+                    ></textarea>
+                </div>
                 
-                <div class="text-options">
-                    <button id="selectAllBtn">Select All</button>
-                    <button id="clearTextBtn">Clear</button>
-                    <button id="useSelectedBtn">Use Selected Text</button>
+                <div class="btn-group btn-group-sm">
+                    <button id="selectAllBtn" class="btn btn-outline">Select All</button>
+                    <button id="clearTextBtn" class="btn btn-outline">Clear Text</button>
+                    <button id="useSelectedBtn" class="btn btn-outline">Use Selection</button>
                 </div>
                 
                 <div id="selectionInfo" class="selection-info hidden">
-                    <strong>Selected text:</strong> <span id="selectedTextPreview"></span>
+                    <strong>Selected text:</strong> <span id="selectedTextPreview" class="selection-text"></span>
                 </div>
                 
-                <button id="generateQR" style="margin-top: 15px;">📱 Generate QR Code from Text Above</button>
+                <button id="generateQR" class="btn btn-primary" style="width: 100%;">
+                    📱 Generate QR Code
+                </button>
             </div>
+        </div>
 
-            <div id="qrResult" class="qr-result hidden">
-                <h3>📱 Generated QR Code:</h3>
-                <canvas id="qrCodeCanvas"></canvas>
+        <!-- QR Code Results Card -->
+        <div id="qrResult" class="card hidden">
+            <div class="card-content">
+                <h3 class="font-semibold text-lg mb-4 text-center">📱 Generated QR Code</h3>
+                <div class="qr-display">
+                    <canvas id="qrCodeCanvas"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -267,7 +481,7 @@
                 this.detectedTextDiv = document.getElementById('detectedText');
                 this.qrCanvas = document.getElementById('qrCodeCanvas');
                 
-                // New text editing elements
+                // Text editing elements
                 this.textEditor = document.getElementById('textEditor');
                 this.selectAllBtn = document.getElementById('selectAllBtn');
                 this.clearTextBtn = document.getElementById('clearTextBtn');
@@ -293,11 +507,11 @@
 
             async startCamera() {
                 try {
-                    this.updateStatus('🎥 Starting camera...');
+                    this.updateStatus('🎥 Starting camera...', 'default', true);
                     
                     const constraints = {
                         video: {
-                            facingMode: 'environment', // Use back camera if available
+                            facingMode: 'environment',
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         }
@@ -315,11 +529,11 @@
                     this.captureBtn.disabled = false;
                     this.stopCameraBtn.disabled = false;
                     
-                    this.updateStatus('📷 Camera ready! Position text in view and click "Capture & Scan Text"');
+                    this.updateStatus('📷 Camera ready! Position text in view and click "Capture & Scan"', 'success');
 
                 } catch (error) {
                     console.error('Error accessing camera:', error);
-                    this.updateStatus('❌ Error accessing camera. Please ensure you have given camera permissions.', true);
+                    this.updateStatus('❌ Error accessing camera. Please ensure you have given camera permissions.', 'destructive');
                 }
             }
 
@@ -334,27 +548,24 @@
                 this.captureBtn.disabled = true;
                 this.stopCameraBtn.disabled = true;
                 
-                this.updateStatus('Camera stopped. Click "Start Camera" to begin again.');
+                this.updateStatus('Camera stopped. Click "Start Camera" to begin again.', 'default');
             }
 
             async captureAndScan() {
                 try {
-                    this.updateStatus('📸 Capturing image...', false, true);
+                    this.updateStatus('📸 Capturing image...', 'default', true);
                     this.captureBtn.disabled = true;
 
-                    // Capture frame from video
                     this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
                     
-                    this.updateStatus('🔍 Scanning for text... This may take a moment...', false, true);
+                    this.updateStatus('🔍 Scanning for text... This may take a moment...', 'default', true);
 
-                    // Convert canvas to image data for Tesseract
                     const imageData = this.canvas.toDataURL('image/png');
 
-                    // Perform OCR
                     const result = await Tesseract.recognize(imageData, 'eng', {
                         logger: m => {
                             if (m.status === 'recognizing text') {
-                                this.updateStatus(`🔍 Scanning text... ${Math.round(m.progress * 100)}%`, false, true);
+                                this.updateStatus(`🔍 Scanning text... ${Math.round(m.progress * 100)}%`, 'default', true);
                             }
                         }
                     });
@@ -363,14 +574,14 @@
 
                     if (this.detectedText) {
                         this.displayDetectedText(this.detectedText);
-                        this.updateStatus('✅ Text detected successfully! You can now generate a QR code.');
+                        this.updateStatus('✅ Text detected successfully! You can now generate a QR code.', 'success');
                     } else {
-                        this.updateStatus('⚠️ No text detected. Try repositioning the camera or ensuring better lighting.');
+                        this.updateStatus('⚠️ No text detected. Try repositioning the camera or ensuring better lighting.', 'warning');
                     }
 
                 } catch (error) {
                     console.error('Error during OCR:', error);
-                    this.updateStatus('❌ Error scanning text. Please try again.', true);
+                    this.updateStatus('❌ Error scanning text. Please try again.', 'destructive');
                 } finally {
                     this.captureBtn.disabled = false;
                 }
@@ -378,10 +589,10 @@
 
             displayDetectedText(text) {
                 this.detectedTextDiv.textContent = text;
-                this.textEditor.value = text; // Populate the editable text area
+                this.textEditor.value = text;
                 this.textResult.classList.remove('hidden');
-                this.qrResult.classList.add('hidden'); // Hide previous QR code
-                this.selectionInfo.classList.add('hidden'); // Hide selection info
+                this.qrResult.classList.add('hidden');
+                this.selectionInfo.classList.add('hidden');
             }
 
             selectAllText() {
@@ -400,9 +611,9 @@
                 if (selectedText) {
                     this.textEditor.value = selectedText;
                     this.selectionInfo.classList.add('hidden');
-                    this.updateStatus('✅ Selected text is now ready for QR code generation.');
+                    this.updateStatus('✅ Selected text is now ready for QR code generation.', 'success');
                 } else {
-                    this.updateStatus('⚠️ Please select some text first.', true);
+                    this.updateStatus('⚠️ Please select some text first.', 'warning');
                 }
             }
 
@@ -428,17 +639,15 @@
                 const textToEncode = this.textEditor.value.trim();
                 
                 if (!textToEncode) {
-                    this.updateStatus('❌ No text to convert to QR code. Please enter some text.', true);
+                    this.updateStatus('❌ No text to convert to QR code. Please enter some text.', 'destructive');
                     return;
                 }
 
                 try {
-                    this.updateStatus('🎨 Generating QR code...', false, true);
+                    this.updateStatus('🎨 Generating QR code...', 'default', true);
                     
-                    // Clear previous QR code
                     this.qrCanvas.width = this.qrCanvas.width;
                     
-                    // Generate QR code from the text in the editor
                     await QRCode.toCanvas(this.qrCanvas, textToEncode, {
                         width: 300,
                         margin: 2,
@@ -449,40 +658,35 @@
                     });
 
                     this.qrResult.classList.remove('hidden');
-                    this.updateStatus(`✅ QR code generated successfully! (${textToEncode.length} characters)`);
+                    this.updateStatus(`✅ QR code generated successfully! (${textToEncode.length} characters)`, 'success');
 
                 } catch (error) {
                     console.error('Error generating QR code:', error);
-                    this.updateStatus('❌ Error generating QR code. Text might be too long.', true);
+                    this.updateStatus('❌ Error generating QR code. Text might be too long.', 'destructive');
                 }
             }
 
-            updateStatus(message, isError = false, isLoading = false) {
+            updateStatus(message, type = 'default', isLoading = false) {
                 this.status.textContent = message;
-                this.status.className = 'status';
-                
-                if (isError) {
-                    this.status.classList.add('error');
-                }
+                this.status.className = `alert alert-${type}`;
                 
                 if (isLoading) {
-                    const loadingSpinner = document.createElement('span');
-                    loadingSpinner.className = 'loading';
-                    this.status.appendChild(document.createTextNode(' '));
-                    this.status.appendChild(loadingSpinner);
+                    const spinner = document.createElement('span');
+                    spinner.className = 'spinner';
+                    this.status.appendChild(spinner);
                 }
             }
         }
 
-        // Initialize the app when the page loads
+        // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
             new TextScannerApp();
         });
 
-        // Check for required browser features
+        // Check for browser support
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             document.getElementById('status').innerHTML = '❌ Your browser does not support camera access. Please use a modern browser.';
-            document.getElementById('status').classList.add('error');
+            document.getElementById('status').className = 'alert alert-destructive';
         }
     </script>
 </body>
