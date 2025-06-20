@@ -167,13 +167,10 @@
         <button class="btn btn-primary" onclick="startCamera()">Start Camera</button>
         <button class="btn btn-primary" onclick="captureAndScan()">Capture & Scan</button>
         <button class="btn btn-danger" onclick="resetAll('cameraInput', 'qrCanvasCamera')">Reset</button>
-      </div>
-      <textarea id="cameraInput" placeholder="Scanned text will appear here..."></textarea>
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="generateFromText('cameraInput', 'qrCanvasCamera')">Generate QR</button>
-      </div>
-      <div class="qr-display">
-        <canvas id="qrCanvasCamera" class="qr-canvas" width="300" height="300"></canvas>
+        </div>
+          <textarea id="manualInput"></textarea>
+          <canvas id="qrCodeCanvas" style="display: none;"></canvas>
+          <button onclick="generateFromText()">Generate QR Code</button>
       </div>
     </div>
   </div>
@@ -205,31 +202,24 @@
 
     function generateFromText() {
       const text = document.getElementById('manualInput').value.trim();
+      const canvas = document.getElementById('qrCodeCanvas');
     
       if (!text) {
         alert('Please enter some text.');
         return;
       }
     
-      const qr = QRCode.default || QRCode;
-    
-      qr.toCanvas(document.getElementById('qrCodeCanvas'), text, { width: 256, margin: 8 }, (error) => {
+      QRCode.toCanvas(canvas, text, { width: 256, margin: 8 }, function (error) {
         if (error) {
           console.error('Failed to generate QR:', error);
+          alert('Failed to generate QR.');
         } else {
           console.log('QR code generated!');
-        }
-
-
-      }, function (error) {
-        if (error) {
-          console.error(error);
-          alert("Failed to generate QR.");
-        } else {
-          canvas.style.display = 'block';
+          canvas.style.display = 'block'; // make sure it's visible
         }
       });
     }
+
 
     function resetAll(inputId, canvasId) {
       document.getElementById(inputId).value = '';
