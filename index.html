@@ -116,9 +116,10 @@
       max-width: 300px;
       height: auto;
       background: white;
-      padding: 1rem;
+      padding: 2rem; /* increased padding */
       border-radius: var(--radius);
       display: none;
+      box-sizing: border-box;
     }
 
     #status {
@@ -262,9 +263,11 @@
     };
 
     function resetCanvas() {
-      ctxQR.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      // Mobile-safe canvas clearing
+      qrCanvas.width = qrCanvas.width; // reliably clears all content
       qrCanvas.style.display = "none";
     }
+
 
     document.getElementById('resetBtn').onclick = () => {
       textEditor.value = "";
