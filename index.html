@@ -112,15 +112,16 @@
     }
 
     #qrCodeCanvas {
+      display: none;
       width: 100%;
       max-width: 300px;
+      padding: 2rem;
       height: auto;
       background: white;
-      padding: 2rem; /* increased padding */
       border-radius: var(--radius);
-      display: none;
       box-sizing: border-box;
     }
+
 
     #status {
       margin-top: 1rem;
@@ -263,10 +264,19 @@
     };
 
     function resetCanvas() {
-      // Mobile-safe canvas clearing
-      qrCanvas.width = qrCanvas.width; // reliably clears all content
-      qrCanvas.style.display = "none";
+      const canvas = document.getElementById("qrCodeCanvas");
+      const ctx = canvas.getContext("2d");
+    
+      // Fully clear canvas drawing
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+      // Optionally reset dimensions to force redraw
+      canvas.width = canvas.width;
+    
+      // Hide canvas visually
+      canvas.style.display = "none";
     }
+
 
 
     document.getElementById('resetBtn').onclick = () => {
