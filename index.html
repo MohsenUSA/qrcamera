@@ -643,7 +643,7 @@
 
         async generateQRCode() {
             const textToEncode = this.textEditor.value.trim();
-            
+        
             if (!textToEncode) {
                 this.updateStatus('❌ Please enter some text in the text box above to generate a QR code.', 'destructive');
                 this.textEditor.focus();
@@ -653,21 +653,35 @@
             try {
                 this.updateStatus('🎨 Generating QR code...', 'default', true);
         
-                // ✅ Explicitly set canvas size before drawing
-                this.qrCanvas.width = 300;
-                this.qrCanvas.height = 300;
+                // Temporary container to use UMD QRCode (which generates an <img>)
+                const tempDiv = document.createElement('div');
+                document.body.appendChild(tempDiv); // Must be in DOM
         
-                const ctx = this.qrCanvas.getContext('2d');
-                ctx.clearRect(0, 0, this.qrCanvas.width, this.qrCanvas.height);
-        
-                await QRCode.toCanvas(this.qrCanvas, textToEncode, {
+                // Use UMD-style QRCode generation
+                new QRCode(tempDiv, {
+                    text: textToEncode,
                     width: 300,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    }
+                    height: 300,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
                 });
+        
+                // Wait for image to render
+                await new Promise(resolve => setTimeout(resolve, 200));
+        
+                const img = tempDiv.querySelector('img');
+                if (!img) throw new Error('QR image not generated.');
+        
+                const canvas = this.qrCanvas;
+                const ctx = canvas.getContext('2d');
+        
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+        
+                document.body.removeChild(tempDiv); // Clean up
         
                 this.qrResult.classList.remove('hidden');
                 this.updateStatus(`✅ QR code generated successfully! (${textToEncode.length} characters)`, 'success');
@@ -677,6 +691,7 @@
                 this.updateStatus('❌ Error generating QR code. Text might be too long or invalid.', 'destructive');
             }
         }
+
 
       updateStatus(message, type = 'default', isLoading = false) {
         this.status.textContent = message;
