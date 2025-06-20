@@ -292,22 +292,34 @@
             margin: 1rem 0;
         }
 
-        /* QR Code display */
-        .qr-display {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            background-color: hsl(var(--muted));
-            border-radius: var(--radius);
-            border: 1px solid hsl(var(--border));
+        @media (max-width: 480px) {
+          #qrCodeCanvas {
+            max-width: 90vw;
+          }
         }
 
-        #qrCodeCanvas {
-            border-radius: var(--radius);
-            background: white;
-            padding: 1rem;
+        /* QR Code display */
+        .qr-display {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 1rem;
+          background-color: hsl(var(--muted));
+          border-radius: var(--radius);
+          border: 1px solid hsl(var(--border));
+          width: 100%;
+          max-width: 100%;
         }
+        
+        #qrCodeCanvas {
+          width: 100%;
+          height: auto;
+          max-width: 300px; /* Optional limit */
+          display: block;
+          background: white;
+          border-radius: var(--radius);
+        }
+
 
         /* Selection info */
         .selection-info {
