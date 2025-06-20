@@ -263,10 +263,28 @@
 
     // Download QR Code function
     function downloadQRCode(canvas) {
+      // Create a new canvas with padding
+      const padding = 40; // 40px padding on all sides
+      const paddedCanvas = document.createElement('canvas');
+      const paddedCtx = paddedCanvas.getContext('2d');
+      
+      // Set dimensions with padding
+      paddedCanvas.width = canvas.width + (padding * 2);
+      paddedCanvas.height = canvas.height + (padding * 2);
+      
+      // Fill with white background
+      paddedCtx.fillStyle = '#ffffff';
+      paddedCtx.fillRect(0, 0, paddedCanvas.width, paddedCanvas.height);
+      
+      // Draw the QR code centered with padding
+      paddedCtx.drawImage(canvas, padding, padding);
+      
+      // Download the padded version
       const link = document.createElement('a');
       link.download = 'qrcode.png';
-      link.href = canvas.toDataURL();
+      link.href = paddedCanvas.toDataURL();
       link.click();
+      
       status.textContent = "✅ QR code downloaded!";
       setTimeout(() => {
         status.textContent = "💡 Enter text or use the camera to scan it.";
