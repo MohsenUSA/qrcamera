@@ -515,25 +515,6 @@
   </div>
 
   <div id="status" style="text-align: center">💡 Enter text or use the camera to scan it 💡</div>
-  <div id="status"
-       style="
-         position: fixed;
-         bottom: 0;
-         left: 0;
-         width: 100%;
-         padding: 1rem 0;
-         text-align: center;
-         color: #6c757d;
-         font-size: 0.9rem;
-         background: white;
-       ">
-    Made with ❤️ in Seattle by
-    <a href="https://www.linkedin.com/in/mohajiho"
-       target="_blank"
-       style="text-decoration: none; color: inherit;">
-      Mohsen
-    </a>
-  </div>
 
     <!-- Privacy Notice in status div with more spacing -->
   <div id="status" style="
@@ -1042,10 +1023,48 @@
               ocrProgress.textContent = "Loading language data...";
             }
           },
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
-          tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.!?@#$%^&*()_+-=[]{}|;:\'",.<>?/`~ ',
+          
+          // Optimized for text-only recognition
+          tessedit_pageseg_mode: Tesseract.PSM.AUTO, // Auto-detect layout
+          
+          // Character whitelist - only recognize these characters
+          tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.!?@#$%^&*()_+-=[]{}|;:\'",.<>?/`~\n ',
+          
+          // Text optimization settings
           preserve_interword_spaces: '1',
-          user_defined_dpi: '300'
+          user_defined_dpi: '300',
+          
+          // Disable non-text outputs for better performance
+          tessedit_create_hocr: '0',
+          tessedit_create_tsv: '0',
+          tessedit_create_pdf: '0',
+          tessedit_create_box: '0',
+          tessedit_create_unlv: '0',
+          tessedit_create_osd: '0',
+          
+          // Text-only mode optimizations
+          textonly_pdf: '1',
+          tessedit_do_invert: '0',
+          
+          // Confidence and quality settings
+          tessedit_min_orientation_margin: '7.0',
+          edges_max_children_per_outline: '40',
+          
+          // Disable vertical text detection if not needed
+          textord_tabfind_vertical_text: '0',
+          
+          // Performance optimizations
+          textord_heavy_nr: '0',
+          textord_force_make_prop_words: '0',
+          
+          // Language model settings
+          language_model_penalty_non_freq_dict_word: '0.1',
+          language_model_penalty_non_dict_word: '0.15',
+          
+          // Output settings
+          paragraph_text_based: '1',
+          tessedit_enable_doc_dict: '1',
+          tessedit_enable_bigram_correction: '1'
         });
         
         const text = result.data.text.trim();
