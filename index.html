@@ -535,6 +535,34 @@
     </a>
   </div>
 
+    <!-- Privacy Notice in status div with more spacing -->
+  <div id="status" style="
+    margin-top: 2rem;
+    margin-bottom: 100px;
+    padding: 1rem;
+    background: var(--muted);
+    border-radius: var(--radius);
+    text-align: center;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border: 1px solid var(--border);
+  ">
+    🔒 <strong>Privacy:</strong> All processing happens locally on your device. No data is sent to any server.
+    <details style="margin-top: 0.5rem; text-align: left;">
+      <summary style="cursor: pointer; color: var(--primary); text-align: center; font-weight: bold;">📋 Open Source Licenses</summary>
+      <div style="padding: 0.5rem; font-size: 0.85rem;">
+        <p>This app uses the following open-source libraries:</p>
+        <ul>
+          <li><a href="https://github.com/davidshimjs/qrcodejs" target="_blank" style="color: var(--primary);">QRCode.js</a> - MIT License © davidshimjs</li>
+          <li><a href="https://github.com/naptha/tesseract.js" target="_blank" style="color: var(--primary);">Tesseract.js</a> - Apache 2.0 License © Naptha</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
 
   <!-- Local JS dependencies -->
   <script src="https://mohsenusa.github.io/qrcamera/qrcode.min.js"></script>
