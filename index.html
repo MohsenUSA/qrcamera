@@ -429,6 +429,27 @@
         background: rgba(0,0,0,0.8);
         border: 1px solid var(--border);
       }
+
+      /* Enhanced textarea selection styling */
+      #cameraText::selection {
+        background-color: var(--primary);
+        color: white;
+      }
+      
+      #cameraText::-moz-selection {
+        background-color: var(--primary);
+        color: white;
+      }
+      
+      /* Highlight effect for better UX */
+      .textarea-highlight {
+        animation: highlight-pulse 2s ease-in-out;
+      }
+      
+      @keyframes highlight-pulse {
+        0%, 100% { box-shadow: none; }
+        50% { box-shadow: 0 0 15px var(--primary); }
+      }
     }
   </style>
 </head>
@@ -503,6 +524,7 @@
 
     <div class="btn-group">
       <button class="btn btn-primary" id="generateQRFromCamera">Generate QR Code</button>
+      <button class="btn btn-primary" id="generateQRFromSelected">Generate QR from Selected</button>
       <button class="btn btn-success" id="copyCameraTextBtn">Copy Text</button>
     </div>
 
@@ -556,6 +578,31 @@
     const cameraText = document.getElementById('cameraText');
     const allCapsToggle = document.getElementById('allCapsToggle');
 
+
+        // Generate QR from selected text
+    document.getElementById('generateQRFromSelected').onclick = () => {
+      const textarea = document.getElementById('cameraText');
+      const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
+      
+      if (!selectedText) {
+        // If no text is selected, show a helpful message
+        status.textContent = "❌ Please select some text first by highlighting it.";
+        resetCanvas('qrCodeCanvasCamera', 'qrActionsCamera');
+        
+        // Briefly highlight the textarea to show where to select
+        textarea.style.boxShadow = '0 0 10px var(--primary)';
+        setTimeout(() => {
+          textarea.style.boxShadow = '';
+        }, 2000);
+        
+        return;
+      }
+      
+      generateQRCode(selectedText, 'qrCodeCanvasCamera', 'qrActionsCamera');
+      status.textContent = `✅ QR code generated from selected text. (${selectedText.length} chars)`;
+    };
+    
+    
     // Enhanced camera variables
     let currentStream = null;
     let videoTrack = null;
